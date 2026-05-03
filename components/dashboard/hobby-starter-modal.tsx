@@ -58,7 +58,7 @@ function ProcessingFace() {
           }
         >
           <DotLottieReact
-            src="https://lottie.host/2e677740-ca87-4c43-a8cf-8e57de741a5f/HHM8YjNBMe.lottie"
+            src="/cat-loading.lottie"
             autoplay
             loop
             className="h-[200px] w-[200px]"
@@ -243,7 +243,7 @@ export function HobbyStarterModal({
               className="rounded-2xl border border-border bg-card shadow-lg"
               style={{ backfaceVisibility: "hidden" }}
             >
-              {!hasFlipped && <ProcessingFace />}
+              <ProcessingFace />
             </div>
 
             {/* back face — completed */}
@@ -254,7 +254,7 @@ export function HobbyStarterModal({
                 transform: "rotateY(180deg)",
               }}
             >
-              {hasFlipped && <CompletedFace onClose={handleClose} />}
+              <CompletedFace onClose={handleClose} />
             </div>
           </motion.div>
         </DialogContent>
