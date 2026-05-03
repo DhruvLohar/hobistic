@@ -119,6 +119,7 @@ export default function GuideForm({ onSuccess }: GuideFormProps) {
   const { createGuide, isCreating, error: createError } = useCreateGuide()
   const [unit, setUnit] = React.useState<TimeUnit>("hours")
   const [isStarterModalOpen, setIsStarterModalOpen] = React.useState(false)
+  const [modalProcessing, setModalProcessing] = React.useState(false)
 
   const {
     handleSubmit,
@@ -158,9 +159,16 @@ export default function GuideForm({ onSuccess }: GuideFormProps) {
         unit === "minutes"
           ? String(Number(values.timePerDay) / 60)
           : values.timePerDay
+      setModalProcessing(true)
       setIsStarterModalOpen(true)
-      await createGuide({ ...values, timePerDay: hoursValue })
-      onSuccess?.()
+      try {
+        await createGuide({ ...values, timePerDay: hoursValue })
+        setModalProcessing(false)
+        onSuccess?.()
+      } catch {
+        setModalProcessing(false)
+        setIsStarterModalOpen(false)
+      }
     },
     [createGuide, onSuccess, unit]
   )
@@ -170,7 +178,7 @@ export default function GuideForm({ onSuccess }: GuideFormProps) {
       <HobbyStarterModal
         open={isStarterModalOpen}
         onOpenChange={setIsStarterModalOpen}
-        isProcessing={isCreating}
+        isProcessing={modalProcessing}
       />
       <motion.div
         initial={{ opacity: 0, y: 20 }}

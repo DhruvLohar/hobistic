@@ -69,6 +69,7 @@ async function runGuideEngineJob({
       console.error("[api/guides] Failed to keep guide in processing state:", guideFailError)
     }
     console.error("[api/guides] Engine processing failed:", getErrorMessage(error))
+    throw error
   }
 }
 

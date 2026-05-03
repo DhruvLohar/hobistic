@@ -215,11 +215,15 @@ export function HobbyStarterModal({
         )}
       </AnimatePresence>
 
-      <Dialog open={open} onOpenChange={isProcessing ? undefined : onOpenChange}>
+      <Dialog open={open} onOpenChange={isProcessing ? () => {} : onOpenChange}>
         <DialogContent
-          className="max-w-md gap-0 overflow-visible border-none bg-transparent p-0 shadow-none [&>button]:hidden"
+          showCloseButton={false}
+          className="max-w-md gap-0 overflow-visible border-none bg-transparent p-0 shadow-none"
           style={{ perspective: "1200px" }}
           onInteractOutside={(e) => {
+            if (isProcessing) e.preventDefault()
+          }}
+          onEscapeKeyDown={(e) => {
             if (isProcessing) e.preventDefault()
           }}
         >
