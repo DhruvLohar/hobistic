@@ -14,27 +14,29 @@ interface SerperImagesResponse {
 
 export async function searchImages(
   keyword: string,
-): Promise<string | null> {
-  if (!keyword) return null;
+): Promise<string[]> {
+  if (!keyword) return [];
 
   try {
     const { data } = await axios.post<SerperImagesResponse>(
       SERPER_IMAGES_URL,
-      { q: keyword, num: 5 },
+      { q: keyword, num: 6 },
       {
         headers: {
-          "X-API-KEY": process.env.SERPER_API_KEY!,
+          "X-API-KEY": process.env.NEXT_PUBLIC_SERPER_API_KEY!,
           "Content-Type": "application/json",
         },
       },
     );
 
     const images = data.images ?? [];
-    if (images.length === 0) return null;
+    if (images.length === 0) return [];
 
-    const randomIdx = Math.floor(Math.random() * images.length);
-    return images[randomIdx].imageUrl;
+    // shuffle and return 2-3
+    const shuffled = images.sort(() => Math.random() - 0.5);
+    const count = Math.min(3, Math.max(2, shuffled.length));
+    return shuffled.slice(0, count).map((img) => img.imageUrl);
   } catch {
-    return null;
+    return [];
   }
 }

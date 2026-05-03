@@ -9,6 +9,7 @@ Guidelines:
 - Create 3-5 techniques (major learning areas)
 - Each technique should have 3-6 subtopics
 - Subtopics should progress from basic to advanced within each technique
+- The final subtopic of the entire guide must directly address the learner's stated reason for learning — it should show how the skills they just built apply to that specific goal
 - "text" should be a concise description (1-2 sentences) of what the learner will study
 - "imageKeyword" should be a specific search term for finding a relevant educational image
 - "ytKeyword" should be a specific search term for finding a relevant tutorial video`;
@@ -17,9 +18,11 @@ export function buildGuideUserPrompt(input: EngineInput): string {
   return `Create a structured hobby learning guide with the following details:
 
 Hobby: ${input.hobby}
-Time available per day: ${input.timePerDay}
+Time available per day: ${input.timePerDay} hours
 Reason for learning: ${input.reasonOfLearning}
 First time learner: ${input.isFirstTime ? "Yes" : "No"}
+
+The final subtopic of the last technique must be titled and written specifically around "${input.reasonOfLearning}" — showing the learner how to apply everything they've learned toward that exact goal.
 
 Generate a complete learning plan with techniques and subtopics.`;
 }

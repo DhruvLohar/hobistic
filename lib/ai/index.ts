@@ -1,10 +1,7 @@
 import { GoogleGenAI, ThinkingLevel } from "@google/genai";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 const genai = new GoogleGenAI({
-  apiKey: process.env.GOOGLE_API_KEY!,
+  apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY!,
   httpOptions: { timeout: 120_000 }, // 2 minute timeout (default is 1 min)
 });
 
@@ -63,7 +60,7 @@ export async function useGenAIGrounding<T>(
   ];
 
   const response = await genai.models.generateContent({
-    model: modelMap[model],
+    model: modelMap["GEMINI_FLASH_PREVIEW"], // modelMap[model],
     config,
     contents,
   });

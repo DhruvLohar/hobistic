@@ -33,7 +33,7 @@ export interface SubtopicResources {
   techniqueIndex: number;
   subtopicIndex: number;
   webContent: string;
-  imageUrl: string | null;
+  images: string[];
   youtubeVideos: YouTubeVideo[];
 }
 
@@ -46,7 +46,7 @@ export interface CuratedSubtopic {
 
 export interface EnrichedSubtopic extends Subtopic {
   content: string;
-  image: string | null;
+  images: string[];
   videos: YouTubeVideo[];
 }
 

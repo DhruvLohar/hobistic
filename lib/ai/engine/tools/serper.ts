@@ -19,7 +19,7 @@ export async function searchWeb(query: string): Promise<string> {
       { q: query, num: 5 },
       {
         headers: {
-          "X-API-KEY": process.env.SERPER_API_KEY!,
+          "X-API-KEY": process.env.NEXT_PUBLIC_SERPER_API_KEY!,
           "Content-Type": "application/json",
         },
       },

@@ -24,7 +24,7 @@ export async function searchYouTube(
       { q: keyword, num: 3 },
       {
         headers: {
-          "X-API-KEY": process.env.SERPER_API_KEY!,
+          "X-API-KEY": process.env.NEXT_PUBLIC_SERPER_API_KEY!,
           "Content-Type": "application/json",
         },
       },

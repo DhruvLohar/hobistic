@@ -12,14 +12,14 @@ export async function processSubtopic(
     `[processSubtopic] Processing: ${subtopic.title} (technique ${techniqueIndex}, subtopic ${subtopicIndex})`,
   );
 
-  const [webContent, imageUrl, youtubeVideos] = await Promise.all([
+  const [webContent, images, youtubeVideos] = await Promise.all([
     searchWeb(`${subtopic.text} ${hobby}`),
     searchImages(subtopic.imageKeyword),
     searchYouTube(subtopic.ytKeyword),
   ]);
 
   console.log(
-    `[processSubtopic] Done: ${subtopic.title} — web: ${webContent.length} chars, image: ${!!imageUrl}, videos: ${youtubeVideos.length}`,
+    `[processSubtopic] Done: ${subtopic.title} — web: ${webContent.length} chars, images: ${images.length}, videos: ${youtubeVideos.length}`,
   );
 
   return {
@@ -28,7 +28,7 @@ export async function processSubtopic(
         techniqueIndex,
         subtopicIndex,
         webContent,
-        imageUrl,
+        images,
         youtubeVideos,
       },
     ],

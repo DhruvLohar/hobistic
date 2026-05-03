@@ -26,7 +26,7 @@ export function mergeOutput(
         return {
           ...sub,
           content: curated?.content ?? `## ${sub.title}\n\n${sub.text}`,
-          image: resource?.imageUrl ?? null,
+          images: resource?.images ?? [],
           videos: resource?.youtubeVideos ?? [],
         };
       }),
