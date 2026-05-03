@@ -1,0 +1,62 @@
+"use client"
+
+import * as React from "react"
+import { useRouter } from "next/navigation"
+import { ArrowRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { LoginDialog } from "@/components/home/login-dialog"
+import { useAuth } from "@/hooks/use-auth"
+
+export function GetStartedButton() {
+  const { user, isLoading } = useAuth()
+  const router = useRouter()
+  const [isHydrated, setIsHydrated] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsHydrated(true)
+  }, [])
+
+  if (!isHydrated) {
+    return (
+      <LoginDialog>
+        <Button className="mt-12 w-64 self-start rounded-full py-8 text-xl font-semibold">
+          Get Started
+          <ArrowRight data-icon="inline-end" className="ml-2 -rotate-45" />
+        </Button>
+      </LoginDialog>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <Button
+        disabled
+        className="mt-12 w-64 self-start rounded-full py-8 text-xl font-semibold opacity-70"
+      >
+        Get Started
+        <ArrowRight data-icon="inline-end" className="ml-2 -rotate-45" />
+      </Button>
+    )
+  }
+
+  if (user) {
+    return (
+      <Button
+        className="mt-12 w-64 self-start rounded-full py-8 text-xl font-semibold"
+        onClick={() => router.push("/dashboard")}
+      >
+        Go to Dashboard
+        <ArrowRight data-icon="inline-end" className="ml-2 -rotate-45" />
+      </Button>
+    )
+  }
+
+  return (
+    <LoginDialog>
+      <Button className="mt-12 w-64 self-start rounded-full py-8 text-xl font-semibold">
+        Get Started
+        <ArrowRight data-icon="inline-end" className="ml-2 -rotate-45" />
+      </Button>
+    </LoginDialog>
+  )
+}

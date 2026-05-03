@@ -12,8 +12,13 @@ interface LoginEmailStepProps {
 }
 
 export function LoginEmailStep({ form, onSubmit }: LoginEmailStepProps) {
+  const isSubmitting = form.formState.isSubmitting
+
   return (
-    <form className="flex flex-1 flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+    <form
+      className="flex flex-1 flex-col gap-4"
+      onSubmit={form.handleSubmit(onSubmit)}
+    >
       <div className="flex flex-col gap-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -21,14 +26,19 @@ export function LoginEmailStep({ form, onSubmit }: LoginEmailStepProps) {
           type="email"
           placeholder="you@example.com"
           aria-invalid={!!form.formState.errors.email}
+          disabled={isSubmitting}
           {...form.register("email")}
         />
         {form.formState.errors.email && (
-          <p className="text-sm text-destructive">{form.formState.errors.email.message}</p>
+          <p className="text-sm text-destructive">
+            {form.formState.errors.email.message}
+          </p>
         )}
       </div>
       <DialogFooter className="mt-auto">
-        <Button type="submit">Continue</Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Sending OTP..." : "Continue"}
+        </Button>
       </DialogFooter>
     </form>
   )
