@@ -8,6 +8,7 @@ import { ArrowRight, Loader2 } from "lucide-react"
 
 import { guideFormSchema, type GuideFormValues } from "@/src/utils/schemas"
 import { useCreateGuide } from "@/hooks/use-guides"
+import { HobbyStarterModal } from "./hobby-starter-modal"
 
 function useAutoWidth(value: string, placeholder: string) {
   const sizerRef = React.useRef<HTMLSpanElement>(null)
@@ -46,7 +47,7 @@ const InlineInput = React.memo(function InlineInput({
       <span
         ref={sizerRef}
         aria-hidden
-        className="pointer-events-none invisible absolute whitespace-pre font-heading text-2xl font-bold sm:text-3xl"
+        className="pointer-events-none invisible absolute font-heading text-2xl font-bold whitespace-pre sm:text-3xl"
       >
         {value || placeholder}
       </span>
@@ -64,10 +65,10 @@ const InlineInput = React.memo(function InlineInput({
           "font-heading text-2xl font-bold sm:text-3xl",
           "transition-colors duration-150",
           error
-            ? "text-destructive border-b-[2.5px] border-destructive/70 placeholder:text-destructive/30"
+            ? "border-b-[2.5px] border-destructive/70 text-destructive placeholder:text-destructive/30"
             : hasValue
-              ? "text-primary border-b-[2.5px] border-primary/60 placeholder:text-foreground/25"
-              : "text-foreground/30 border-b-2 border-foreground/15 placeholder:text-foreground/25",
+              ? "border-b-[2.5px] border-primary/60 text-primary placeholder:text-foreground/25"
+              : "border-b-2 border-foreground/15 text-foreground/30 placeholder:text-foreground/25",
         ].join(" ")}
         style={{ minWidth: "3ch" }}
       />
@@ -117,6 +118,7 @@ interface GuideFormProps {
 export default function GuideForm({ onSuccess }: GuideFormProps) {
   const { createGuide, isCreating, error: createError } = useCreateGuide()
   const [unit, setUnit] = React.useState<TimeUnit>("hours")
+  const [isStarterModalOpen, setIsStarterModalOpen] = React.useState(false)
 
   const {
     handleSubmit,
@@ -156,6 +158,7 @@ export default function GuideForm({ onSuccess }: GuideFormProps) {
         unit === "minutes"
           ? String(Number(values.timePerDay) / 60)
           : values.timePerDay
+      setIsStarterModalOpen(true)
       await createGuide({ ...values, timePerDay: hoursValue })
       onSuccess?.()
     },
@@ -163,100 +166,109 @@ export default function GuideForm({ onSuccess }: GuideFormProps) {
   )
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-      className="w-full"
-    >
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="rounded-2xl border border-border bg-card/80 px-6 py-8 shadow-sm backdrop-blur-sm sm:px-10 sm:py-10">
-
-          {/* the paragraph — all inline, wraps naturally */}
-          <p className="relative font-heading text-2xl font-bold leading-[1.55] text-foreground sm:text-3xl">
-            {"I want to learn "}
-            <InlineInput
-              placeholder="guitar"
-              value={hobby}
-              onChange={(v) => setValue("hobby", v, { shouldValidate: true })}
-              error={errors.hobby?.message}
-            />
-            {", I can spend "}
-            <InlineInput
-              placeholder={unit === "hours" ? "2" : "45"}
-              value={timePerDay}
-              onChange={(v) => setValue("timePerDay", v, { shouldValidate: true })}
-              error={errors.timePerDay?.message}
-              type="number"
-            />
-            {" "}
-            <button
-              type="button"
-              onClick={handleUnitToggle}
-              className={[
-                "relative inline-block cursor-pointer select-none",
-                "font-heading text-2xl font-bold sm:text-3xl",
-                "transition-colors duration-150",
-                "border-b-[2.5px] border-primary/60 text-primary",
-                "hover:border-primary hover:opacity-80",
-              ].join(" ")}
-            >
-              {unit}
-            </button>
-            {" per day, and my reason for learning is to "}
-            <InlineInput
-              placeholder="play at friend's birthday"
-              value={reasonOfLearning}
-              onChange={(v) => setValue("reasonOfLearning", v, { shouldValidate: true })}
-              error={errors.reasonOfLearning?.message}
-            />
-            {". I am learning it "}
-            <FirstTimeToggle
-              value={isFirstTime}
-              onChange={(v) => setValue("isFirstTime", v)}
-            />
-            {"."}
-          </p>
-
-          <AnimatePresence>
-            {createError && (
-              <motion.p
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mt-5 text-sm text-destructive"
+    <>
+      <HobbyStarterModal
+        open={isStarterModalOpen}
+        onOpenChange={setIsStarterModalOpen}
+        isProcessing={isCreating}
+      />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full"
+      >
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="rounded-2xl border border-border bg-card/80 px-6 py-8 shadow-sm backdrop-blur-sm sm:px-10 sm:py-10">
+            {/* the paragraph — all inline, wraps naturally */}
+            <p className="relative font-heading text-2xl leading-[1.55] font-bold text-foreground sm:text-3xl">
+              {"I want to learn "}
+              <InlineInput
+                placeholder="guitar"
+                value={hobby}
+                onChange={(v) => setValue("hobby", v, { shouldValidate: true })}
+                error={errors.hobby?.message}
+              />
+              {", I can spend "}
+              <InlineInput
+                placeholder={unit === "hours" ? "2" : "45"}
+                value={timePerDay}
+                onChange={(v) =>
+                  setValue("timePerDay", v, { shouldValidate: true })
+                }
+                error={errors.timePerDay?.message}
+                type="number"
+              />{" "}
+              <button
+                type="button"
+                onClick={handleUnitToggle}
+                className={[
+                  "relative inline-block cursor-pointer select-none",
+                  "font-heading text-2xl font-bold sm:text-3xl",
+                  "transition-colors duration-150",
+                  "border-b-[2.5px] border-primary/60 text-primary",
+                  "hover:border-primary hover:opacity-80",
+                ].join(" ")}
               >
-                {createError.message}
-              </motion.p>
-            )}
-          </AnimatePresence>
+                {unit}
+              </button>
+              {" per day, and my reason for learning is to "}
+              <InlineInput
+                placeholder="play at friend's birthday"
+                value={reasonOfLearning}
+                onChange={(v) =>
+                  setValue("reasonOfLearning", v, { shouldValidate: true })
+                }
+                error={errors.reasonOfLearning?.message}
+              />
+              {". I am learning it "}
+              <FirstTimeToggle
+                value={isFirstTime}
+                onChange={(v) => setValue("isFirstTime", v)}
+              />
+              {"."}
+            </p>
 
-          <div className="mt-8 flex justify-end">
-            <button
-              type="submit"
-              disabled={isCreating}
-              className={[
-                "group flex items-center gap-2 rounded-full bg-primary px-6 py-2.5",
-                "font-heading text-sm font-semibold text-primary-foreground",
-                "transition-all duration-200 hover:gap-3 hover:pr-5",
-                "disabled:cursor-not-allowed disabled:opacity-60",
-              ].join(" ")}
-            >
-              {isCreating ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Generating…</span>
-                </>
-              ) : (
-                <>
-                  <span>Let the magic begin</span>
-                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-                </>
+            <AnimatePresence>
+              {createError && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-5 text-sm text-destructive"
+                >
+                  {createError.message}
+                </motion.p>
               )}
-            </button>
+            </AnimatePresence>
+
+            <div className="mt-8 flex justify-end">
+              <button
+                type="submit"
+                disabled={isCreating}
+                className={[
+                  "group flex items-center gap-2 rounded-full bg-primary px-6 py-2.5",
+                  "font-heading text-sm font-semibold text-primary-foreground",
+                  "transition-all duration-200 hover:gap-3 hover:pr-5",
+                  "disabled:cursor-not-allowed disabled:opacity-60",
+                ].join(" ")}
+              >
+                {isCreating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Generating…</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Let the magic begin</span>
+                    <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
-        </div>
-      </form>
-    </motion.div>
+        </form>
+      </motion.div>
+    </>
   )
 }

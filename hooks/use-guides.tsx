@@ -14,6 +14,8 @@ export interface Guide {
   reason_of_learning: string
   is_first_time: boolean
   created_at: string
+  subtopic_count?: number
+  cover_image?: string | null
 }
 
 const GUIDES_QUERY_KEY = ["guides"] as const
@@ -42,7 +44,7 @@ export function useGuides() {
 export function useCreateGuide() {
   const queryClient = useQueryClient()
 
-  const createMutation = useMutation<void, Error, GuideFormValues>({
+  const createMutation = useMutation<Guide, Error, GuideFormValues>({
     mutationFn: async (values) => {
       const res = await fetch("/api/guides", {
         method: "POST",
@@ -53,15 +55,21 @@ export function useCreateGuide() {
         const body = await res.json().catch(() => ({}))
         throw new Error(body.error ?? "Failed to create guide")
       }
+      const body = await res.json()
+      return body.guide as Guide
     },
-    onSuccess: async () => {
+    onSuccess: async (newGuide) => {
+      queryClient.setQueryData<Guide[]>(GUIDES_QUERY_KEY, (currentGuides) => {
+        const existing = currentGuides ?? []
+        return [newGuide, ...existing.filter((guide) => guide.id !== newGuide.id)]
+      })
       await queryClient.invalidateQueries({ queryKey: GUIDES_QUERY_KEY })
     },
   })
 
   const createGuide = React.useCallback(
-    async (values: GuideFormValues) => {
-      await createMutation.mutateAsync(values)
+    async (values: GuideFormValues): Promise<Guide> => {
+      return createMutation.mutateAsync(values)
     },
     [createMutation]
   )

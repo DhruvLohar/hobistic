@@ -9,13 +9,15 @@
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed:guide": "pnpm dlx tsx supabase/seed-guide.ts"
   },
   "dependencies": {
     "@google/genai": "^1.51.0",
     "@hookform/resolvers": "^5.2.2",
     "@langchain/core": "^1.1.44",
     "@langchain/langgraph": "^1.2.9",
+    "@lottiefiles/dotlottie-react": "^0.19.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@supabase/ssr": "^0.10.2",
@@ -34,6 +36,9 @@
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-hook-form": "^7.75.0",
+    "react-markdown": "^10.1.0",
+    "rehype-raw": "^7.0.0",
+    "remark-gfm": "^4.0.1",
     "shadcn": "^4.6.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",

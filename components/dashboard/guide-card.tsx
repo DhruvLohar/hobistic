@@ -1,8 +1,9 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { motion } from "motion/react"
-import { Clock, Sparkles, BookOpen } from "lucide-react"
+import { Clock, Sparkles, BookOpen, Loader2 } from "lucide-react"
 
 import type { Guide } from "@/hooks/use-guides"
 
@@ -40,8 +41,9 @@ function formatDate(iso: string): string {
 
 const GuideCard = React.memo(function GuideCard({ guide, index }: GuideCardProps) {
   const genreColor = React.useMemo(() => getGenreColor(guide.genre), [guide.genre])
+  const isProcessing = guide.status === "processing"
 
-  return (
+  const cardContent = (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -50,8 +52,11 @@ const GuideCard = React.memo(function GuideCard({ guide, index }: GuideCardProps
         delay: index * 0.08,
         ease: [0.22, 1, 0.36, 1],
       }}
-      whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-shadow duration-200 hover:shadow-md"
+      whileHover={isProcessing ? undefined : { y: -4, transition: { duration: 0.2 } }}
+      className={[
+        "group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-shadow duration-200",
+        isProcessing ? "cursor-default" : "cursor-pointer hover:shadow-md",
+      ].join(" ")}
     >
       {/* top accent bar */}
       <div className="h-1 w-full bg-gradient-to-r from-primary/60 via-primary to-primary/40" />
@@ -73,12 +78,21 @@ const GuideCard = React.memo(function GuideCard({ guide, index }: GuideCardProps
             </span>
           </div>
 
-          {guide.is_first_time && (
-            <span className="flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-primary">
-              <Sparkles className="h-3 w-3" />
-              beginner
-            </span>
-          )}
+          <div className="flex flex-col items-end gap-1">
+            {isProcessing && (
+              <span className="flex shrink-0 items-center gap-1 rounded-full bg-blue-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-300">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                processing
+              </span>
+            )}
+
+            {guide.is_first_time && (
+              <span className="flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                <Sparkles className="h-3 w-3" />
+                beginner
+              </span>
+            )}
+          </div>
         </div>
 
         {/* reason */}
@@ -100,6 +114,10 @@ const GuideCard = React.memo(function GuideCard({ guide, index }: GuideCardProps
       </div>
     </motion.div>
   )
+
+  if (isProcessing) return cardContent
+
+  return <Link href={`/hobby/${guide.id}`}>{cardContent}</Link>
 })
 
 export default GuideCard

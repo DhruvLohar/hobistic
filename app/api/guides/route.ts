@@ -37,6 +37,41 @@ function getErrorMessage(error: unknown): string {
   return "Unknown error"
 }
 
+async function runGuideEngineJob({
+  supabase,
+  guideId,
+  input,
+}: {
+  supabase: Awaited<ReturnType<typeof createClient>>
+  guideId: string
+  input: EngineInput
+}) {
+  try {
+    const engineResult = await runEngine(input)
+    const validatedResult = enrichedGuideSchema.safeParse(engineResult)
+
+    if (!validatedResult.success) {
+      throw new Error("Engine output did not match expected guide structure")
+    }
+
+    await persistGuideOutput({
+      supabase,
+      guideId,
+      result: validatedResult.data,
+    })
+  } catch (error) {
+    const { error: guideFailError } = await supabase
+      .from("guides")
+      .update({ status: "processing" })
+      .eq("id", guideId)
+
+    if (guideFailError) {
+      console.error("[api/guides] Failed to keep guide in processing state:", guideFailError)
+    }
+    console.error("[api/guides] Engine processing failed:", getErrorMessage(error))
+  }
+}
+
 async function persistGuideOutput({
   supabase,
   guideId,
@@ -167,7 +202,16 @@ export async function GET() {
 
     const { data: guides, error } = await supabase
       .from("guides")
-      .select("id, hobby, genre, status, time_per_day, reason_of_learning, is_first_time, created_at")
+      .select(`
+        id, hobby, genre, status, time_per_day, reason_of_learning, is_first_time, created_at,
+        techniques (
+          subtopics (
+            id,
+            sort_order,
+            subtopic_images ( url, sort_order )
+          )
+        )
+      `)
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
 
@@ -175,7 +219,39 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ guides: guides ?? [] })
+    type SubtopicImage = { url: string; sort_order: number }
+    type Subtopic = { id: string; sort_order: number; subtopic_images: SubtopicImage[] }
+    type Technique = { subtopics: Subtopic[] }
+
+    const shaped = (guides ?? []).map((guide) => {
+      const techniques: Technique[] = (guide.techniques as Technique[]) ?? []
+
+      const subtopicCount = techniques.reduce((sum, t) => sum + (t.subtopics?.length ?? 0), 0)
+
+      const firstSubtopic = techniques[0]?.subtopics
+        ?.slice()
+        .sort((a, b) => a.sort_order - b.sort_order)[0]
+
+      const coverImage =
+        firstSubtopic?.subtopic_images
+          ?.slice()
+          .sort((a, b) => a.sort_order - b.sort_order)[0]?.url ?? null
+
+      return {
+        id: guide.id,
+        hobby: guide.hobby,
+        genre: guide.genre,
+        status: guide.status,
+        time_per_day: guide.time_per_day,
+        reason_of_learning: guide.reason_of_learning,
+        is_first_time: guide.is_first_time,
+        created_at: guide.created_at,
+        subtopic_count: subtopicCount,
+        cover_image: coverImage,
+      }
+    })
+
+    return NextResponse.json({ guides: shaped })
   } catch (err) {
     console.error("[api/guides] Error:", err)
     return NextResponse.json({ error: "Failed to fetch guides" }, { status: 500 })
@@ -222,7 +298,7 @@ export async function POST(req: NextRequest) {
       is_first_time: input.isFirstTime,
       status: "processing",
     })
-    .select("id")
+    .select("id, hobby, genre, status, time_per_day, reason_of_learning, is_first_time, created_at")
     .single()
 
   if (guideCreateError || !createdGuide) {
@@ -232,91 +308,74 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { data: createdJob, error: jobCreateError } = await supabase
-    .from("engine_jobs")
-    .insert({
-      user_id: user.id,
-      guide_id: createdGuide.id,
-      status: "running",
-      input,
-      started_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .select("id")
-    .single()
-
-  if (jobCreateError || !createdJob) {
-    const { error: cleanupError } = await supabase.from("guides").delete().eq("id", createdGuide.id)
-    if (cleanupError) {
-      console.error("[api/guides] Failed to cleanup guide after job create failure:", cleanupError)
-    }
-
-    return NextResponse.json(
-      { error: jobCreateError?.message ?? "Failed to create engine job" },
-      { status: 500 }
-    )
-  }
-
   try {
-    const engineResult = await runEngine(input)
-    const validatedResult = enrichedGuideSchema.safeParse(engineResult)
-
-    if (!validatedResult.success) {
-      throw new Error("Engine output did not match expected guide structure")
-    }
-
-    await persistGuideOutput({
+    await runGuideEngineJob({
       supabase,
       guideId: createdGuide.id,
-      result: validatedResult.data,
+      input,
     })
-
-    const { error: jobCompleteError } = await supabase
-      .from("engine_jobs")
-      .update({
-        status: "completed",
-        output: validatedResult.data,
-        completed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", createdJob.id)
-
-    if (jobCompleteError) {
-      throw new Error(jobCompleteError.message)
-    }
-
+  } catch (engineErr) {
+    console.error("[api/guides] Engine failed:", getErrorMessage(engineErr))
     return NextResponse.json(
       {
         guideId: createdGuide.id,
-        engineJobId: createdJob.id,
-        status: "completed",
+        status: "failed",
+        guide: {
+          ...createdGuide,
+          subtopic_count: 0,
+          cover_image: null,
+        },
       },
       { status: 201 }
     )
-  } catch (error) {
-    const message = getErrorMessage(error)
-
-    const { error: jobFailError } = await supabase
-      .from("engine_jobs")
-      .update({
-        status: "failed",
-        error_message: message,
-        completed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", createdJob.id)
-
-    if (jobFailError) {
-      console.error("[api/guides] Failed to mark engine job as failed:", jobFailError)
-    }
-
-    return NextResponse.json(
-      {
-        error: "Failed to generate guide",
-        guideId: createdGuide.id,
-        engineJobId: createdJob.id,
-      },
-      { status: 500 }
-    )
   }
+
+  const { data: completedGuide } = await supabase
+    .from("guides")
+    .select(`
+      id, hobby, genre, status, time_per_day, reason_of_learning, is_first_time, created_at,
+      techniques (
+        subtopics (
+          id,
+          sort_order,
+          subtopic_images ( url, sort_order )
+        )
+      )
+    `)
+    .eq("id", createdGuide.id)
+    .single()
+
+  type SubtopicImage = { url: string; sort_order: number }
+  type SubtopicRow = { id: string; sort_order: number; subtopic_images: SubtopicImage[] }
+  type TechniqueRow = { subtopics: SubtopicRow[] }
+
+  const techniques: TechniqueRow[] = (completedGuide?.techniques as TechniqueRow[]) ?? []
+  const subtopicCount = techniques.reduce((sum, t) => sum + (t.subtopics?.length ?? 0), 0)
+  const firstSubtopic = techniques[0]?.subtopics
+    ?.slice()
+    .sort((a, b) => a.sort_order - b.sort_order)[0]
+  const coverImage =
+    firstSubtopic?.subtopic_images
+      ?.slice()
+      .sort((a, b) => a.sort_order - b.sort_order)[0]?.url ?? null
+
+  return NextResponse.json(
+    {
+      guideId: createdGuide.id,
+      status: "completed",
+      guide: {
+        id: completedGuide?.id ?? createdGuide.id,
+        hobby: completedGuide?.hobby ?? createdGuide.hobby,
+        genre: completedGuide?.genre ?? createdGuide.genre,
+        status: completedGuide?.status ?? "completed",
+        time_per_day: completedGuide?.time_per_day ?? createdGuide.time_per_day,
+        reason_of_learning: completedGuide?.reason_of_learning ?? createdGuide.reason_of_learning,
+        is_first_time: completedGuide?.is_first_time ?? createdGuide.is_first_time,
+        created_at: completedGuide?.created_at ?? createdGuide.created_at,
+        subtopic_count: subtopicCount,
+        cover_image: coverImage,
+      },
+    },
+    { status: 201 }
+  )
 }
