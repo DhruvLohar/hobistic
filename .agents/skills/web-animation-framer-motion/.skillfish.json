@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "web-animation-framer-motion",
+  "owner": "agents-inc",
+  "repo": "skills",
+  "path": "dist/plugins/web-animation-framer-motion/skills/web-animation-framer-motion",
+  "branch": "main",
+  "sha": "d52efd9c02f2d3c4b3f7b6d75f7ab30165c2cd61",
+  "source": "manual"
+}
