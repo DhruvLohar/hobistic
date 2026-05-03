@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "content-editing",
+  "owner": "it-bens",
+  "repo": "claude-code-plugins",
+  "path": "plugins/llm-author/skills/content-editing",
+  "branch": "main",
+  "sha": "4614d52a6ab97971590b39d1a6144cdb349dc3dc",
+  "source": "manual"
+}
