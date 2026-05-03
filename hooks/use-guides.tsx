@@ -9,6 +9,7 @@ export interface Guide {
   id: string
   hobby: string
   genre: string
+  status: "processing" | "completed"
   time_per_day: string
   reason_of_learning: string
   is_first_time: boolean
@@ -43,15 +44,10 @@ export function useCreateGuide() {
 
   const createMutation = useMutation<void, Error, GuideFormValues>({
     mutationFn: async (values) => {
-      const res = await fetch("/api/engine", {
+      const res = await fetch("/api/guides", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          hobby: values.hobby,
-          timePerDay: values.timePerDay,
-          reasonOfLearning: values.reasonOfLearning,
-          isFirstTime: values.isFirstTime,
-        }),
+        body: JSON.stringify(values),
       })
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))

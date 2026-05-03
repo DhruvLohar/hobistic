@@ -1,7 +1,7 @@
 import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 
 const genai = new GoogleGenAI({
-  apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY!,
+  apiKey: process.env.GOOGLE_API_KEY!,
   httpOptions: { timeout: 120_000 }, // 2 minute timeout (default is 1 min)
 });
 

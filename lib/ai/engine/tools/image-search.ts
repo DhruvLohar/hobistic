@@ -23,7 +23,7 @@ export async function searchImages(
       { q: keyword, num: 6 },
       {
         headers: {
-          "X-API-KEY": process.env.NEXT_PUBLIC_SERPER_API_KEY!,
+          "X-API-KEY": process.env.SERPER_API_KEY!,
           "Content-Type": "application/json",
         },
       },

@@ -24,13 +24,13 @@ export async function searchYouTube(
       { q: keyword, num: 3 },
       {
         headers: {
-          "X-API-KEY": process.env.NEXT_PUBLIC_SERPER_API_KEY!,
+          "X-API-KEY": process.env.SERPER_API_KEY!,
           "Content-Type": "application/json",
         },
       },
     );
 
-    return (data.videos ?? []).map((v) => ({
+    return (data.videos ?? []).slice(0, 4).map((v) => ({
       title: v.title,
       url: v.link,
       thumbnail: v.imageUrl ?? "",
