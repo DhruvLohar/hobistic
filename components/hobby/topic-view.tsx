@@ -82,8 +82,8 @@ const VideoCard = React.memo(function VideoCard({ video }: VideoCardProps) {
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors duration-300 group-hover:bg-black/30">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 shadow-lg backdrop-blur-sm transition-transform duration-300 group-hover:scale-110">
-                <Play className="ml-1 h-6 w-6 fill-primary text-primary" />
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 shadow-lg backdrop-blur-sm transition-transform duration-300 group-hover:scale-110 sm:h-14 sm:w-14">
+                <Play className="ml-0.5 h-5 w-5 fill-primary text-primary sm:ml-1 sm:h-6 sm:w-6" />
               </div>
             </div>
           </button>
@@ -248,7 +248,7 @@ export default function TopicView({ guideId, topicId }: TopicViewProps) {
           <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-primary">
             {techniqueName}
           </p>
-          <h1 className="mb-3 font-heading text-3xl font-bold leading-tight text-foreground sm:text-4xl">
+          <h1 className="mb-3 font-heading text-2xl font-bold leading-tight text-foreground sm:text-3xl md:text-4xl">
             {subtopic.title}
           </h1>
           <p className="text-base leading-relaxed text-muted-foreground">

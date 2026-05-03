@@ -84,7 +84,7 @@ const TechniqueCard = React.memo(function TechniqueCard({
         </h2>
       </div>
 
-      <div className="space-y-2 pl-11">
+      <div className="space-y-2 pl-0 sm:pl-11">
         {sortedSubtopics.map((subtopic, i) => (
           <Link
             key={subtopic.id}
@@ -247,7 +247,7 @@ export default function GuideOverview({ guideId }: GuideOverviewProps) {
             )}
           </div>
 
-          <h1 className="mb-3 font-heading text-4xl font-bold capitalize leading-tight text-foreground sm:text-5xl">
+          <h1 className="mb-3 font-heading text-3xl font-bold capitalize leading-tight text-foreground sm:text-4xl md:text-5xl">
             {guide.hobby}
           </h1>
 

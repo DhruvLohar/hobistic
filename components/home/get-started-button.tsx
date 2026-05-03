@@ -19,7 +19,7 @@ export function GetStartedButton() {
   if (!isHydrated) {
     return (
       <LoginDialog>
-        <Button className="mt-12 w-64 self-start rounded-full py-8 text-xl font-semibold">
+        <Button className="mt-8 w-full self-start rounded-full py-8 text-xl font-semibold sm:mt-12 sm:w-64">
           Get Started
           <ArrowRight data-icon="inline-end" className="ml-2 -rotate-45" />
         </Button>
@@ -31,7 +31,7 @@ export function GetStartedButton() {
     return (
       <Button
         disabled
-        className="mt-12 w-64 self-start rounded-full py-8 text-xl font-semibold opacity-70"
+        className="mt-8 w-full self-start rounded-full py-8 text-xl font-semibold sm:mt-12 sm:w-64 opacity-70"
       >
         Get Started
         <ArrowRight data-icon="inline-end" className="ml-2 -rotate-45" />
@@ -42,7 +42,7 @@ export function GetStartedButton() {
   if (user) {
     return (
       <Button
-        className="mt-12 w-64 self-start rounded-full py-8 text-xl font-semibold"
+        className="mt-8 w-full self-start rounded-full py-8 text-xl font-semibold sm:mt-12 sm:w-64"
         onClick={() => router.push("/dashboard")}
       >
         Go to Dashboard
@@ -53,7 +53,7 @@ export function GetStartedButton() {
 
   return (
     <LoginDialog>
-      <Button className="mt-12 w-64 self-start rounded-full py-8 text-xl font-semibold">
+      <Button className="mt-8 w-full self-start rounded-full py-8 text-xl font-semibold sm:mt-12 sm:w-64">
         Get Started
         <ArrowRight data-icon="inline-end" className="ml-2 -rotate-45" />
       </Button>

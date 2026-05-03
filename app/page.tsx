@@ -42,6 +42,21 @@ export default function Page() {
 
       <HeroCarousel />
 
+      {/* mobile CTA — bottom overlay */}
+      <div className="absolute inset-x-0 bottom-0 flex flex-col items-center px-6 pb-10 pt-24 text-center md:hidden">
+        <h2 className="font-product text-4xl font-semibold text-white sm:text-5xl">
+          Stick to your <span className="text-primary">Hobbies</span>
+        </h2>
+        <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/80 sm:text-base">
+          Turn free time into fun skill time — pick a hobby, level up, and
+          enjoy every step.
+        </p>
+        <div className="mt-6 w-full">
+          <GetStartedButton />
+        </div>
+      </div>
+
+      {/* desktop CTA — right panel */}
       <div className="absolute top-0 right-0 hidden h-full w-1/2 md:block">
         <div className="flex h-full flex-col items-start justify-center px-16 text-center">
           <h2 className="text-left font-product text-8xl font-semibold text-foreground">

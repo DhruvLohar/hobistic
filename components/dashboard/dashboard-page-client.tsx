@@ -20,8 +20,11 @@ function DashboardContent() {
   )
 
   const handleSignOut = React.useCallback(async () => {
-    await signOut()
-    router.replace("/")
+    try {
+      await signOut()
+    } finally {
+      router.replace("/")
+    }
   }, [router, signOut])
 
   if (!user) return null
@@ -57,9 +60,9 @@ function DashboardContent() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
           onClick={handleSignOut}
-          className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+          className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
         >
-          <LogOut className="h-3.5 w-3.5" />
+          <LogOut className="h-4 w-4" />
           Sign out
         </motion.button>
       </header>

@@ -103,7 +103,7 @@ export function OnboardingModal() {
           {/* Step content */}
           <FormProvider {...methods}>
             <form onSubmit={methods.handleSubmit(onSubmit)}>
-              <div className="relative h-[340px] overflow-y-auto overflow-x-hidden px-6 py-6 scrollbar-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="relative max-h-[60svh] min-h-[280px] overflow-y-auto overflow-x-hidden px-6 py-6 scrollbar-none sm:min-h-[340px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 <AnimatePresence mode="wait" custom={direction}>
                   <motion.div
                     key={step}

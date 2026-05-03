@@ -175,7 +175,7 @@ export function LoginDialog({ open: initialOpen, children }: LoginDialogProps) {
       <DialogTrigger asChild>{children}</DialogTrigger>
 
       <DialogContent className="w-[min(94vw,520px)] max-w-130 gap-0 overflow-hidden bg-secondary p-0">
-        <div className="relative aspect-square w-full shrink-0 overflow-hidden">
+        <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden sm:aspect-square">
           <Image
             src="/login-modal.webp"
             alt="Login"
