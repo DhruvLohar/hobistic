@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -48,6 +48,7 @@ export default function Page() {
       otp: "",
     },
   })
+  const otpValue = useWatch({ control: otpForm.control, name: "otp" }) ?? ""
 
   const handleDialogOpenChange = React.useCallback(
     (nextOpen: boolean) => {
@@ -62,13 +63,13 @@ export default function Page() {
   )
 
   const handleEmailSubmit = React.useCallback(
-    (_values: LoginEmailFormValues) => {
+    () => {
       setStep("otp")
     },
     [],
   )
 
-  const handleOtpSubmit = React.useCallback((_values: LoginOtpFormValues) => {}, [])
+  const handleOtpSubmit = React.useCallback(() => {}, [])
 
   const handleOtpChange = React.useCallback(
     (value: string) => {
@@ -144,7 +145,7 @@ export default function Page() {
                 <InputOTP
                   id="otp"
                   maxLength={OTP_LENGTH}
-                  value={otpForm.watch("otp")}
+                  value={otpValue}
                   onChange={handleOtpChange}
                 >
                   <InputOTPGroup>
