@@ -19,6 +19,13 @@ export interface Guide {
 }
 
 const GUIDES_QUERY_KEY = ["guides"] as const
+const MOCK_CREATE_GUIDE = false;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
+}
 
 export function useGuides() {
   const guidesQuery = useQuery<Guide[], Error>({
@@ -46,6 +53,23 @@ export function useCreateGuide() {
 
   const createMutation = useMutation<Guide, Error, GuideFormValues>({
     mutationFn: async (values) => {
+      if (MOCK_CREATE_GUIDE) {
+        await sleep(4000)
+
+        return {
+          id: crypto.randomUUID(),
+          hobby: values.hobby,
+          genre: "processing",
+          status: "processing",
+          time_per_day: values.timePerDay,
+          reason_of_learning: values.reasonOfLearning,
+          is_first_time: values.isFirstTime,
+          created_at: new Date().toISOString(),
+          subtopic_count: 0,
+          cover_image: null,
+        }
+      }
+
       const res = await fetch("/api/guides", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -63,7 +87,10 @@ export function useCreateGuide() {
         const existing = currentGuides ?? []
         return [newGuide, ...existing.filter((guide) => guide.id !== newGuide.id)]
       })
-      await queryClient.invalidateQueries({ queryKey: GUIDES_QUERY_KEY })
+
+      if (!MOCK_CREATE_GUIDE) {
+        await queryClient.invalidateQueries({ queryKey: GUIDES_QUERY_KEY })
+      }
     },
   })
 

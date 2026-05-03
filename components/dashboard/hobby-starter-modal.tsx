@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import { AnimatePresence, motion } from "motion/react"
 
 import { Button } from "@/components/ui/button"
@@ -115,55 +116,36 @@ interface CompletedFaceProps {
 
 function CompletedFace({ onClose }: CompletedFaceProps) {
   return (
-    <div className="flex flex-col items-center gap-5 px-6 py-8 sm:px-8 sm:py-10">
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{
-          type: "spring",
-          stiffness: 260,
-          damping: 20,
-          delay: 0.3,
-        }}
-        className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10"
-      >
-        <motion.svg
-          viewBox="0 0 24 24"
-          className="h-10 w-10 text-primary"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
+    <div className="relative h-full overflow-hidden rounded-2xl">
+      <div className="absolute inset-0">
+        <Image
+          src="/hobby-start.webp"
+          alt="A new hobby journey begins"
+          fill
+          className="object-cover"
+        />
+        <div className="absolute opacity-80 inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/10" />
+      </div>
+
+      <div className="relative flex h-full flex-col items-center justify-end gap-5 px-6 py-8 text-center sm:px-8 sm:py-10">
+        <DialogHeader className="space-y-2">
+          <DialogTitle className="font-heading text-3xl font-bold tracking-tight text-white">
+            Congratulations!
+          </DialogTitle>
+          <DialogDescription className="mx-auto max-w-sm text-base leading-relaxed text-white/90">
+            You&apos;re ahead of people who
+            never even try.
+          </DialogDescription>
+        </DialogHeader>
+
+        <Button
+          type="button"
+          onClick={onClose}
+          className="h-11 rounded-full bg-white px-7 font-heading text-sm tracking-wide text-black uppercase hover:bg-white/90"
         >
-          <motion.path
-            d="M20 6L9 17l-5-5"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 0.5, delay: 0.6, ease: "easeOut" }}
-          />
-        </motion.svg>
-      </motion.div>
-
-      <DialogHeader className="space-y-2 text-center">
-        <DialogTitle className="font-heading text-3xl font-bold tracking-tight text-foreground">
-          Congratulations!
-        </DialogTitle>
-        <DialogDescription className="mx-auto max-w-sm text-base leading-relaxed text-muted-foreground">
-          You just started a hobby, which already puts you ahead of people who
-          never even try. You are now ahead of at least{" "}
-          <span className="font-semibold text-foreground">85%</span> of people
-          who stay stuck at day zero.
-        </DialogDescription>
-      </DialogHeader>
-
-      <Button
-        type="button"
-        onClick={onClose}
-        className="h-11 rounded-full px-7 font-heading text-sm tracking-wide uppercase"
-      >
-        Let&apos;s build momentum
-      </Button>
+          Let&apos;s build momentum
+        </Button>
+      </div>
     </div>
   )
 }
@@ -176,17 +158,22 @@ export function HobbyStarterModal({
   const [hasFlipped, setHasFlipped] = React.useState(false)
 
   React.useEffect(() => {
-    if (!isProcessing && open) {
-      const timer = setTimeout(() => setHasFlipped(true), 200)
-      return () => clearTimeout(timer)
-    }
-  }, [isProcessing, open])
+    const timer = window.setTimeout(
+      () => {
+        if (!open) {
+          setHasFlipped(false)
+          return
+        }
 
-  React.useEffect(() => {
-    if (!open) {
-      setHasFlipped(false)
-    }
-  }, [open])
+        if (!isProcessing) {
+          setHasFlipped(true)
+        }
+      },
+      open && !isProcessing ? 200 : 0
+    )
+
+    return () => window.clearTimeout(timer)
+  }, [isProcessing, open])
 
   const handleClose = React.useCallback(() => {
     onOpenChange(false)

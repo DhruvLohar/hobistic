@@ -58,7 +58,6 @@ const GuideCard = React.memo(function GuideCard({ guide, index }: GuideCardProps
         isProcessing ? "cursor-default" : "cursor-pointer hover:shadow-md",
       ].join(" ")}
     >
-      {/* top accent bar */}
       <div className="h-1 w-full bg-gradient-to-r from-primary/60 via-primary to-primary/40" />
 
       <div className="flex flex-1 flex-col gap-4 p-5">
