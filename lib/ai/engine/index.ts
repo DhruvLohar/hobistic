@@ -1,89 +1,49 @@
-import { GoogleGenAI, ThinkingLevel } from "@google/genai";
-import dotenv from "dotenv";
+import { END, START, Send, StateGraph } from "@langchain/langgraph";
+import { EngineState } from "./state";
+import { generateGuide } from "./nodes/generate-guide";
+import { processSubtopic } from "./nodes/process-subtopic";
+import { curateContent } from "./nodes/curate-content";
+import { mergeOutput } from "./nodes/merge-output";
+import type { EngineInput, EnrichedGuide } from "./types";
 
-dotenv.config();
+function fanOutSubtopics(
+  state: typeof EngineState.State,
+): Send[] {
+  const sends: Send[] = [];
 
-const genai = new GoogleGenAI({
-  apiKey: process.env.GOOGLE_API_KEY!,
-  httpOptions: { timeout: 120_000 }, // 2 minute timeout (default is 1 min)
-});
-
-export const groundingEnabledTools = [
-  {
-    googleSearch: {},
-  },
-];
-
-export const GEMINI_FLASH_PREVIEW = "gemini-3.1-flash-lite-preview";
-export const GEMINI_PRO_TEXT = "gemini-3.1-pro-preview";
-
-type GenAIModel =
-  | "GEMINI_FLASH_PREVIEW"
-  | "GEMINI_PRO_TEXT";
-
-const modelMap: Record<GenAIModel, string> = {
-  GEMINI_FLASH_PREVIEW,
-  GEMINI_PRO_TEXT,
-};
-
-export async function useGenAIGrounding(systemPrompt: string, userPrompt: string, model?: GenAIModel): Promise<string>;
-export async function useGenAIGrounding<T>(systemPrompt: string, userPrompt: string, model: GenAIModel, schema: any): Promise<T>;
-export async function useGenAIGrounding<T>(
-  systemPrompt: string,
-  userPrompt: string,
-  model: GenAIModel = "GEMINI_FLASH_PREVIEW",
-  schema?: any // TODO: fix to a type later
-): Promise<string | T> {
-  const config = {
-    thinkingConfig: {
-      thinkingLevel: ThinkingLevel.MEDIUM,
-    },
-    tools: groundingEnabledTools,
-    systemInstruction: [
-      {
-        text: systemPrompt,
-      },
-    ],
-    ...(schema && {
-      temperature: 1.0,
-      responseMimeType: "application/json" as const,
-      responseJsonSchema: schema,
-    }),
-  };
-
-  const contents = [
-    {
-      role: "user",
-      parts: [
-        {
-          text: userPrompt,
-        },
-      ],
-    },
-  ];
-
-  const response = await genai.models.generateContent({
-    model: modelMap[model],
-    config,
-    contents,
+  state.guide.techniques.forEach((technique, ti) => {
+    technique.subtopics.forEach((subtopic, si) => {
+      sends.push(
+        new Send("processSubtopic", {
+          techniqueIndex: ti,
+          subtopicIndex: si,
+          subtopic,
+          hobby: state.guide.hobby,
+        }),
+      );
+    });
   });
 
-  if (schema) {
-    const raw = response.text ?? "";
-    console.log(`[GenAI] Raw response (first 500 chars):`, raw.slice(0, 500));
-    if (!raw) {
-      const finishReason = response.candidates?.[0]?.finishReason;
-      const promptFeedback = response.promptFeedback;
-      const parts = response.candidates?.[0]?.content?.parts;
-      console.error(`[GenAI] Empty response. finishReason=${finishReason}, promptFeedback=${JSON.stringify(promptFeedback)}, parts=${JSON.stringify(parts?.map(p => ({ thought: (p as any).thought, hasText: !!p.text, textLen: p.text?.length })))}`);
-    }
-    try {
-      return JSON.parse(raw) as T;
-    } catch (err) {
-      console.error(`[GenAI] Failed to parse response. Full text:`, raw);
-      throw err;
-    }
-  }
-
-  return response.text ?? "";
+  console.log(`[engine] Fan-out: ${sends.length} subtopics to process`);
+  return sends;
 }
+
+const workflow = new StateGraph(EngineState)
+  .addNode("generateGuide", generateGuide)
+  .addNode("processSubtopic", processSubtopic)
+  .addNode("curateContent", curateContent)
+  .addNode("mergeOutput", mergeOutput)
+  .addEdge(START, "generateGuide")
+  .addConditionalEdges("generateGuide", fanOutSubtopics)
+  .addEdge("processSubtopic", "curateContent")
+  .addEdge("curateContent", "mergeOutput")
+  .addEdge("mergeOutput", END);
+
+export const engine = workflow.compile();
+
+export async function runEngine(input: EngineInput): Promise<EnrichedGuide> {
+  const result = await engine.invoke({ input });
+  return result.enrichedGuide;
+}
+
+export type { EngineInput, EnrichedGuide } from "./types";

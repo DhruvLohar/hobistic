@@ -80,6 +80,9 @@ importers:
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
+      zod:
+        specifier: ^4.4.2
+        version: 4.4.2
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3
