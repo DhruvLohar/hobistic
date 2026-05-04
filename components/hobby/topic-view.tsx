@@ -147,6 +147,8 @@ export default function TopicView({ guideId, topicId }: TopicViewProps) {
   const { trackEvent } = useAnalytics()
   const contentRef = React.useRef<HTMLDivElement>(null)
   const trackedSubtopicRef = React.useRef<string | null>(null)
+  const [completionOverride, setCompletionOverride] = React.useState(false)
+  const [nextUnlockedSubtopicId, setNextUnlockedSubtopicId] = React.useState<string | null>(null)
 
   const { scrollYProgress } = useScroll()
   const scaleX = useSpring(scrollYProgress, {
@@ -172,6 +174,25 @@ export default function TopicView({ guideId, topicId }: TopicViewProps) {
       }
     }
     return ""
+  }, [guide, topicId])
+
+  const nextSubtopicIdFromGuide = React.useMemo(() => {
+    if (!guide) return null
+
+    const orderedSubtopicIds = guide.techniques
+      .slice()
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .flatMap((technique) =>
+        technique.subtopics
+          .slice()
+          .sort((a, b) => a.sort_order - b.sort_order)
+          .map((subtopic) => subtopic.id)
+      )
+
+    const currentIndex = orderedSubtopicIds.findIndex((id) => id === topicId)
+    if (currentIndex < 0) return null
+
+    return orderedSubtopicIds[currentIndex + 1] ?? null
   }, [guide, topicId])
 
   const handleBack = React.useCallback(() => {
@@ -208,6 +229,11 @@ export default function TopicView({ guideId, topicId }: TopicViewProps) {
     })
   }, [error, guide, guideId, isLoading, subtopic, trackEvent])
 
+  React.useEffect(() => {
+    setCompletionOverride(false)
+    setNextUnlockedSubtopicId(null)
+  }, [topicId])
+
   if (isLoading) return <TopicSkeleton />
 
   if (error || !guide || !subtopic) {
@@ -231,10 +257,18 @@ export default function TopicView({ guideId, topicId }: TopicViewProps) {
   )
   const sortedVideos = [...subtopic.subtopic_videos]
   const isLocked = !subtopic.is_unlocked
-  const isCompleted = subtopic.is_completed
+  const isCompleted = subtopic.is_completed || completionOverride
+  const nextLessonId = nextUnlockedSubtopicId ?? nextSubtopicIdFromGuide
 
   const handleComplete = async () => {
-    await completeSubtopic({ guideId, subtopicId: subtopic.id })
+    const result = await completeSubtopic({ guideId, subtopicId: subtopic.id })
+    setCompletionOverride(true)
+    setNextUnlockedSubtopicId(result.nextUnlockedSubtopicId)
+  }
+
+  const handleGoToNextLesson = () => {
+    if (!nextLessonId) return
+    router.push(`/hobby/${guideId}/topic/${nextLessonId}`)
   }
 
   return (
@@ -319,10 +353,21 @@ export default function TopicView({ guideId, topicId }: TopicViewProps) {
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {isCompleted ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                Completed
-              </span>
+              <>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Completed
+                </span>
+                {nextLessonId && (
+                  <button
+                    type="button"
+                    onClick={handleGoToNextLesson}
+                    className="rounded-full border border-border bg-background px-4 py-2 text-xs font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                  >
+                    Go to next lesson
+                  </button>
+                )}
+              </>
             ) : isLocked ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
                 <Lock className="h-3.5 w-3.5" />
