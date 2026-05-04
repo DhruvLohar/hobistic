@@ -96,7 +96,7 @@ const GuideCard = React.memo(function GuideCard({ guide, index }: GuideCardProps
 
         {/* reason */}
         <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-          {guide.reason_of_learning}
+          To {guide.reason_of_learning}
         </p>
 
         {/* footer */}

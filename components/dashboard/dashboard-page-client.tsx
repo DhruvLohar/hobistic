@@ -3,7 +3,9 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "motion/react"
-import { LogOut } from "lucide-react"
+import { LogOut, Moon, Sun } from "lucide-react"
+import { useTheme } from "next-themes"
+import Link from "next/link"
 
 import { useAuthContext } from "@/hooks/use-auth"
 import { OnboardingModal } from "@/components/onboarding/onboarding-modal"
@@ -13,6 +15,7 @@ import GuidesGrid from "./guides-grid"
 function DashboardContent() {
   const router = useRouter()
   const { user, profile, signOut } = useAuthContext()
+  const { resolvedTheme, setTheme } = useTheme()
 
   const displayName = React.useMemo(
     () => profile?.display_name ?? user?.email?.split("@")[0] ?? "there",
@@ -26,6 +29,10 @@ function DashboardContent() {
       router.replace("/")
     }
   }, [router, signOut])
+
+  const handleThemeToggle = React.useCallback(() => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark")
+  }, [resolvedTheme, setTheme])
 
   if (!user) return null
 
@@ -46,25 +53,42 @@ function DashboardContent() {
 
       {/* top bar */}
       <header className="flex items-center justify-between px-6 py-5 sm:px-10">
-        <motion.span
-          initial={{ opacity: 0, x: -12 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          className="font-product text-2xl text-primary"
-        >
-          HobiStic
-        </motion.span>
+        <Link href="/">
+          <motion.span
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="font-product text-2xl text-primary"
+          >
+            HobiStic
+          </motion.span>
+        </Link>
 
-        <motion.button
+        <motion.div
           initial={{ opacity: 0, x: 12 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
-          onClick={handleSignOut}
-          className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+          className="flex items-center gap-2"
         >
-          <LogOut className="h-4 w-4" />
-          Sign out
-        </motion.button>
+          <button
+            type="button"
+            onClick={handleThemeToggle}
+            aria-label="Toggle dark mode"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background/80 text-foreground shadow-sm backdrop-blur transition-colors hover:bg-muted"
+          >
+            <Sun className="h-4 w-4 dark:hidden" />
+            <Moon className="hidden h-4 w-4 dark:block" />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+          >
+            <LogOut className="h-4 w-4" />
+            Sign out
+          </button>
+        </motion.div>
       </header>
 
       <main className="mx-auto w-full max-w-6xl px-6 pb-20 sm:px-10">
