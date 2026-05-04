@@ -187,7 +187,7 @@ export default function GuideForm({ onSuccess }: GuideFormProps) {
         className="w-full"
       >
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="rounded-2xl border border-border bg-card/80 px-6 py-8 shadow-sm backdrop-blur-sm sm:px-10 sm:py-10">
+          <div className="glass-panel rounded-2xl px-6 py-8 sm:px-10 sm:py-10">
             {/* the paragraph — all inline, wraps naturally */}
             <p className="relative font-heading text-2xl leading-[1.55] font-bold text-foreground sm:text-3xl">
               {"I want to learn "}

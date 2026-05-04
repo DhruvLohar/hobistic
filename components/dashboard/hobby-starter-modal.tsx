@@ -124,10 +124,10 @@ function CompletedFace({ onClose }: CompletedFaceProps) {
           fill
           className="object-cover"
         />
-        <div className="absolute opacity-80 inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/10" />
+        <div className="absolute opacity-80 inset-0 bg-linear-to-t from-black/90 via-black/60 to-black/20" />
       </div>
 
-      <div className="relative flex h-full flex-col items-center justify-end gap-5 px-6 py-8 text-center sm:px-8 sm:py-10">
+      <div className="relative flex h-full flex-col items-center justify-end gap-5 px-6 py-4 text-center sm:px-8 sm:py-10">
         <DialogHeader className="space-y-2">
           <DialogTitle className="font-heading text-3xl font-bold tracking-tight text-white">
             Congratulations!

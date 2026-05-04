@@ -1,8 +1,25 @@
+export type LifestyleType =
+  | "student"
+  | "working"
+  | "business"
+  | "content-creator"
+  | "freelancer"
+  | "homemaker"
+  | "retired";
+
+export type PurposeType =
+  | "escape-routine"
+  | "explore-new"
+  | "master-skill"
+  | "mental-wellness";
+
 export interface EngineInput {
   hobby: string;
   timePerDay: string;
   reasonOfLearning: string;
   isFirstTime: boolean;
+  lifestyle?: LifestyleType | null;
+  purpose?: PurposeType | null;
 }
 
 export interface Subtopic {

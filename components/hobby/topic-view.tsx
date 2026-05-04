@@ -59,7 +59,7 @@ const VideoCard = React.memo(function VideoCard({ video }: VideoCardProps) {
   return (
     <motion.div
       variants={itemVariants}
-      className="group overflow-hidden rounded-xl border border-border bg-card shadow-sm"
+      className="group overflow-hidden rounded-xl glass-subtle shadow-sm"
     >
       <div className="relative aspect-video w-full overflow-hidden bg-muted">
         {playing ? (
@@ -194,14 +194,26 @@ export default function TopicView({ guideId, topicId }: TopicViewProps) {
         className="fixed top-0 right-0 left-0 z-50 h-[3px] bg-gradient-to-r from-primary via-primary/80 to-primary/60"
       />
 
-      {/* decorative background */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute -top-32 -right-32 h-[500px] w-[500px] rounded-full bg-primary/6 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-[400px] w-[400px] rounded-full bg-primary/4 blur-3xl" />
+      {/* ambient gradient orbs */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div
+          className="absolute -top-36 -right-36 h-[560px] w-[560px] rounded-full blur-[100px]"
+          style={{
+            background: "radial-gradient(ellipse at 58% 42%, oklch(0.514 0.222 16.935 / 0.24) 0%, oklch(0.586 0.253 17.585 / 0.12) 50%, transparent 75%)",
+            transform: "rotate(-18deg) scaleX(0.87)",
+          }}
+        />
+        <div
+          className="absolute -bottom-44 -left-44 h-[460px] w-[460px] rounded-full blur-[95px]"
+          style={{
+            background: "radial-gradient(ellipse at 40% 58%, oklch(0.78 0.18 55 / 0.14) 0%, oklch(0.514 0.222 16.935 / 0.08) 55%, transparent 78%)",
+            transform: "rotate(12deg) scaleY(0.82)",
+          }}
+        />
       </div>
 
       {/* sticky header */}
-      <header className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-border/40 bg-background/70 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-3xl items-center gap-4 px-6 py-3.5 sm:px-10">
           <motion.button
             initial={{ opacity: 0, x: -12 }}

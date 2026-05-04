@@ -54,8 +54,8 @@ const GuideCard = React.memo(function GuideCard({ guide, index }: GuideCardProps
       }}
       whileHover={isProcessing ? undefined : { y: -4, transition: { duration: 0.2 } }}
       className={[
-        "group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-shadow duration-200",
-        isProcessing ? "cursor-default" : "cursor-pointer hover:shadow-md",
+        "group relative flex flex-col overflow-hidden rounded-2xl glass-panel transition-shadow duration-200",
+        isProcessing ? "cursor-default" : "cursor-pointer hover:shadow-lg",
       ].join(" ")}
     >
       <div className="h-1 w-full bg-gradient-to-r from-primary/60 via-primary to-primary/40" />

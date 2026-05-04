@@ -281,11 +281,19 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("lifestyle, purpose, hobbies")
+    .eq("id", user.id)
+    .single()
+
   const input: EngineInput = {
     hobby: parsed.data.hobby,
     timePerDay: parsed.data.timePerDay,
     reasonOfLearning: parsed.data.reasonOfLearning,
     isFirstTime: parsed.data.isFirstTime,
+    lifestyle: profile?.lifestyle ?? null,
+    purpose: profile?.purpose ?? null,
   }
 
   const { data: createdGuide, error: guideCreateError } = await supabase

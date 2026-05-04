@@ -7,7 +7,55 @@ import {
   curationJsonSchema,
 } from "../prompts/content-curation";
 
-const BATCH_SIZE = 8;
+const BATCH_SIZE = 4;
+const MIN_CONTENT_LENGTH = 200;
+
+type CurationBatchItem = {
+  title: string;
+  text: string;
+  webContent: string;
+  isFinal: boolean;
+  techniqueIndex: number;
+  subtopicIndex: number;
+};
+
+type CurationModelItem = {
+  techniqueIndex: number;
+  subtopicIndex: number;
+  title: string;
+  content: string;
+};
+
+function buildFallbackMarkdown(item: CurationBatchItem): string {
+  return `## ${item.title}
+
+${item.text}
+
+[IMAGE-1-HERE]
+
+### Try this
+Practice this subtopic for 10-15 focused minutes and note one thing that improved.
+
+[IMAGE-2-HERE]
+
+**Takeaway:** Small, consistent reps make this concept click faster.`;
+}
+
+function normalizeMarkdown(title: string, content: string): string {
+  const trimmed = content.trim();
+  let markdown = trimmed.length > 0 ? trimmed : `## ${title}`;
+
+  if (!markdown.startsWith("#")) {
+    markdown = `## ${title}\n\n${markdown}`;
+  }
+
+  const fenceCount = (markdown.match(/```/g) ?? []).length;
+  if (fenceCount % 2 !== 0) {
+    markdown = `${markdown}\n\`\`\``;
+  }
+
+  return markdown;
+}
 
 export async function curateContent(
   state: typeof EngineState.State,
@@ -18,13 +66,10 @@ export async function curateContent(
     subtopicResources.map((r) => [`${r.techniqueIndex}-${r.subtopicIndex}`, r]),
   );
 
-  const allItems: {
-    title: string;
-    text: string;
-    webContent: string;
-    techniqueIndex: number;
-    subtopicIndex: number;
-  }[] = [];
+  const lastTi = guide.techniques.length - 1;
+  const lastSi = guide.techniques[lastTi]?.subtopics.length - 1;
+
+  const allItems: CurationBatchItem[] = [];
 
   for (let ti = 0; ti < guide.techniques.length; ti++) {
     const technique = guide.techniques[ti];
@@ -35,13 +80,14 @@ export async function curateContent(
         title: sub.title,
         text: sub.text,
         webContent: resource?.webContent ?? "",
+        isFinal: ti === lastTi && si === lastSi,
         techniqueIndex: ti,
         subtopicIndex: si,
       });
     }
   }
 
-  const batches: (typeof allItems)[] = [];
+  const batches: CurationBatchItem[][] = [];
   for (let i = 0; i < allItems.length; i += BATCH_SIZE) {
     batches.push(allItems.slice(i, i + BATCH_SIZE));
   }
@@ -54,10 +100,13 @@ export async function curateContent(
     batches.map(async (batch, batchIdx) => {
       try {
         const result = await useGenAIGrounding<
-          { title: string; content: string }[]
+          CurationModelItem[]
         >(
           CURATION_SYSTEM_PROMPT,
-          buildCurationUserPrompt(batch),
+          buildCurationUserPrompt(batch, {
+            lifestyle: state.input.lifestyle,
+            purpose: state.input.purpose,
+          }),
           "GEMINI_FLASH_PREVIEW",
           curationJsonSchema,
         );
@@ -66,14 +115,33 @@ export async function curateContent(
           `[curateContent] Batch ${batchIdx + 1}/${batches.length}: curated ${result.length} subtopics`,
         );
 
-        return result.map(
-          (r, idx): CuratedSubtopic => ({
-            title: r.title,
-            content: r.content,
-            techniqueIndex: batch[idx].techniqueIndex,
-            subtopicIndex: batch[idx].subtopicIndex,
-          }),
+        const modelByKey = new Map(
+          result.map((item) => [
+            `${item.techniqueIndex}-${item.subtopicIndex}`,
+            item,
+          ]),
         );
+
+        return batch.map((item): CuratedSubtopic => {
+          const key = `${item.techniqueIndex}-${item.subtopicIndex}`;
+          const generated = modelByKey.get(key);
+          const normalized = normalizeMarkdown(
+            generated?.title ?? item.title,
+            generated?.content ?? "",
+          );
+
+          const safeContent =
+            normalized.length >= MIN_CONTENT_LENGTH
+              ? normalized
+              : buildFallbackMarkdown(item);
+
+          return {
+            title: generated?.title ?? item.title,
+            content: safeContent,
+            techniqueIndex: item.techniqueIndex,
+            subtopicIndex: item.subtopicIndex,
+          };
+        });
       } catch (err) {
         console.error(
           `[curateContent] Batch ${batchIdx + 1} failed:`,

@@ -60,7 +60,7 @@ export async function useGenAIGrounding<T>(
   ];
 
   const response = await genai.models.generateContent({
-    model: modelMap["GEMINI_FLASH_PREVIEW"], // modelMap[model],
+    model: modelMap[model],
     config,
     contents,
   });

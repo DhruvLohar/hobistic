@@ -95,7 +95,7 @@ const TechniqueCard = React.memo(function TechniqueCard({
                 y: CARD_HOVER_Y,
                 transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] },
               }}
-              className="group/card flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-4 shadow-sm transition-shadow duration-300 hover:shadow-md"
+              className="group/card flex items-center justify-between gap-4 rounded-xl glass-subtle p-4 transition-shadow duration-300 hover:shadow-md"
             >
               <div className="flex items-center gap-3.5 overflow-hidden">
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted font-mono text-xs font-medium text-muted-foreground">
@@ -194,16 +194,32 @@ export default function GuideOverview({ guideId }: GuideOverviewProps) {
 
   return (
     <div className="relative min-h-svh overflow-x-hidden">
-      {/* decorative background */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
+      {/* ambient gradient orbs */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div
-          className={`absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-gradient-to-br ${genreGradient} blur-3xl`}
+          className="absolute -top-48 -right-48 h-[680px] w-[680px] rounded-full blur-[110px]"
+          style={{
+            background: "radial-gradient(ellipse at 55% 45%, oklch(0.514 0.222 16.935 / 0.26) 0%, oklch(0.586 0.253 17.585 / 0.13) 50%, transparent 75%)",
+            transform: "rotate(-15deg) scaleX(0.88)",
+          }}
         />
-        <div className="absolute top-1/2 -left-48 h-[400px] w-[400px] rounded-full bg-primary/5 blur-3xl" />
+        <div
+          className="absolute top-[35%] -left-56 h-[480px] w-[480px] rounded-full blur-[90px]"
+          style={{
+            background: "radial-gradient(ellipse at 40% 55%, oklch(0.78 0.18 55 / 0.15) 0%, oklch(0.70 0.15 40 / 0.08) 55%, transparent 78%)",
+            transform: "rotate(10deg) scaleY(0.85)",
+          }}
+        />
+        <div
+          className="absolute -bottom-40 left-1/4 h-[440px] w-[440px] rounded-full blur-[100px]"
+          style={{
+            background: "radial-gradient(ellipse at 50% 50%, oklch(0.514 0.222 16.935 / 0.14) 0%, transparent 70%)",
+          }}
+        />
       </div>
 
       {/* header */}
-      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-border/40 bg-background/70 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-4xl items-center gap-4 px-6 py-4 sm:px-10">
           <motion.button
             initial={{ opacity: 0, x: -12 }}

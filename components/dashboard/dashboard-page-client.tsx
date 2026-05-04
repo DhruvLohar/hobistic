@@ -41,14 +41,35 @@ function DashboardContent() {
   return (
     <div className="relative min-h-svh overflow-x-hidden">
       {needsOnboarding && <OnboardingModal />}
-      {/* decorative bg blobs */}
+      {/* ambient gradient orbs — behind everything */}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
       >
-        <div className="absolute -top-32 -right-32 h-[500px] w-[500px] rounded-full bg-primary/8 blur-3xl" />
-        <div className="absolute top-1/2 -left-48 h-[400px] w-[400px] rounded-full bg-primary/5 blur-3xl" />
-        <div className="absolute -bottom-32 right-1/4 h-[350px] w-[350px] rounded-full bg-primary/6 blur-3xl" />
+        {/* primary blob — top right, distorted */}
+        <div
+          className="absolute -top-40 -right-40 h-[640px] w-[640px] rounded-full blur-[100px]"
+          style={{
+            background: "radial-gradient(ellipse at 60% 40%, oklch(0.514 0.222 16.935 / 0.28) 0%, oklch(0.586 0.253 17.585 / 0.14) 50%, transparent 75%)",
+            transform: "rotate(-20deg) scaleX(0.85)",
+          }}
+        />
+        {/* warm amber complement — mid left */}
+        <div
+          className="absolute top-[30%] -left-52 h-[520px] w-[520px] rounded-full blur-[90px]"
+          style={{
+            background: "radial-gradient(ellipse at 40% 60%, oklch(0.78 0.18 55 / 0.18) 0%, oklch(0.70 0.15 40 / 0.10) 55%, transparent 78%)",
+            transform: "rotate(15deg) scaleY(0.8)",
+          }}
+        />
+        {/* secondary primary echo — bottom center */}
+        <div
+          className="absolute -bottom-48 left-1/3 h-[500px] w-[500px] rounded-full blur-[110px]"
+          style={{
+            background: "radial-gradient(ellipse at 50% 50%, oklch(0.514 0.222 16.935 / 0.16) 0%, transparent 70%)",
+            transform: "scaleX(1.2)",
+          }}
+        />
       </div>
 
       {/* top bar */}
