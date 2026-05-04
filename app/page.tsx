@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { GetStartedButton } from "@/components/home/get-started-button"
 import HeroCarousel from "@/components/home/hero-carousel"
+import { LandingAnalytics } from "@/components/home/landing-analytics"
 
 export const metadata: Metadata = {
   title: "HobiStic - Stick to your Hobbies",
@@ -34,6 +35,7 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <div className="relative min-h-svh bg-[url('/background-mobile.webp')] bg-cover bg-center bg-no-repeat md:bg-[url('/background.webp')]">
+      <LandingAnalytics />
       <div className="absolute top-10 left-0 flex w-full justify-center md:w-1/2">
         <h1 className="font-product text-3xl font-bold text-white sm:text-4xl md:text-4xl">
           HobiStic

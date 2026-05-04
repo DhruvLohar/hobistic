@@ -22,6 +22,7 @@ import {
   type LoginOtpFormValues,
 } from "@/src/utils/schemas"
 import { createClient } from "@/lib/supabase/client"
+import { useAnalytics } from "@/hooks/use-analytics"
 
 const OTP_LENGTH = 6
 
@@ -32,6 +33,7 @@ type LoginDialogProps = {
 
 export function LoginDialog({ open: initialOpen, children }: LoginDialogProps) {
   const router = useRouter()
+  const { trackEvent } = useAnalytics()
   const supabase = React.useMemo(() => {
     if (typeof window === "undefined") {
       return null
@@ -97,8 +99,9 @@ export function LoginDialog({ open: initialOpen, children }: LoginDialogProps) {
       otpForm.reset()
       setStep("otp")
       setAuthInfo("OTP sent. Check your email.")
+      trackEvent("OtpRequested")
     },
-    [otpForm, supabase]
+    [otpForm, supabase, trackEvent]
   )
 
   const handleOtpSubmit = React.useCallback(
@@ -123,10 +126,11 @@ export function LoginDialog({ open: initialOpen, children }: LoginDialogProps) {
         return
       }
 
+      trackEvent("OtpVerified")
       handleDialogOpenChange(false)
       router.push("/dashboard")
     },
-    [emailForm, handleDialogOpenChange, router, supabase]
+    [emailForm, handleDialogOpenChange, router, supabase, trackEvent]
   )
 
   const handleResendOtp = React.useCallback(async () => {
@@ -156,7 +160,8 @@ export function LoginDialog({ open: initialOpen, children }: LoginDialogProps) {
     }
 
     setAuthInfo("A new OTP has been sent to your email.")
-  }, [emailForm, supabase])
+    trackEvent("OtpRequested", { resend: true })
+  }, [emailForm, supabase, trackEvent])
 
   const handleOtpChange = React.useCallback(
     (value: string) => {

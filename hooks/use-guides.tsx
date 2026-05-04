@@ -4,6 +4,7 @@ import * as React from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import type { GuideFormValues } from "@/src/utils/schemas"
+import { useAnalytics } from "@/hooks/use-analytics"
 
 export interface Guide {
   id: string
@@ -50,6 +51,7 @@ export function useGuides() {
 
 export function useCreateGuide() {
   const queryClient = useQueryClient()
+  const { trackEvent } = useAnalytics()
 
   const createMutation = useMutation<Guide, Error, GuideFormValues>({
     mutationFn: async (values) => {
@@ -83,6 +85,11 @@ export function useCreateGuide() {
       return body.guide as Guide
     },
     onSuccess: async (newGuide) => {
+      trackEvent("HobbyGuideCreated", {
+        guideId: newGuide.id,
+        hobby: newGuide.hobby,
+      })
+
       queryClient.setQueryData<Guide[]>(GUIDES_QUERY_KEY, (currentGuides) => {
         const existing = currentGuides ?? []
         return [newGuide, ...existing.filter((guide) => guide.id !== newGuide.id)]

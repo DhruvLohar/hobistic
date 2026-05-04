@@ -10,6 +10,7 @@ import {
   useGuideDetail,
   type Subtopic,
 } from "@/hooks/use-guide-detail"
+import { useAnalytics } from "@/hooks/use-analytics"
 import { Skeleton } from "@/components/ui/skeleton"
 import MarkdownContent from "./markdown-content"
 
@@ -48,15 +49,21 @@ function extractYouTubeId(url: string): string | null {
 
 interface VideoCardProps {
   video: { id: string; title: string; url: string; thumbnail: string }
+  onPlay: (video: { id: string; title: string; url: string }) => void
 }
 
-const VideoCard = React.memo(function VideoCard({ video }: VideoCardProps) {
+const VideoCard = React.memo(function VideoCard({ video, onPlay }: VideoCardProps) {
   const [playing, setPlaying] = React.useState(false)
   const ytId = React.useMemo(() => extractYouTubeId(video.url), [video.url])
 
   const handlePlay = React.useCallback(() => {
+    onPlay({
+      id: video.id,
+      title: video.title,
+      url: video.url,
+    })
     setPlaying(true)
-  }, [])
+  }, [onPlay, video.id, video.title, video.url])
 
   if (!ytId) return null
 
@@ -137,7 +144,9 @@ export default function TopicView({ guideId, topicId }: TopicViewProps) {
   const { guide, isLoading, error } = useGuideDetail(guideId)
   const { completeSubtopic, isCompleting, error: completionError } =
     useCompleteSubtopic()
+  const { trackEvent } = useAnalytics()
   const contentRef = React.useRef<HTMLDivElement>(null)
+  const trackedSubtopicRef = React.useRef<string | null>(null)
 
   const { scrollYProgress } = useScroll()
   const scaleX = useSpring(scrollYProgress, {
@@ -168,6 +177,36 @@ export default function TopicView({ guideId, topicId }: TopicViewProps) {
   const handleBack = React.useCallback(() => {
     router.push(`/hobby/${guideId}`)
   }, [router, guideId])
+
+  const handleVideoPlay = React.useCallback(
+    (video: { id: string; title: string; url: string }) => {
+      if (!subtopic) {
+        return
+      }
+
+      trackEvent("VideoPlayed", {
+        guideId,
+        subtopicId: subtopic.id,
+        videoId: video.id,
+        videoTitle: video.title,
+        videoUrl: video.url,
+      })
+    },
+    [guideId, subtopic, trackEvent]
+  )
+
+  React.useEffect(() => {
+    if (!guide || !subtopic || error || isLoading || trackedSubtopicRef.current === subtopic.id) {
+      return
+    }
+
+    trackedSubtopicRef.current = subtopic.id
+    trackEvent("SubtopicViewed", {
+      guideId,
+      subtopicId: subtopic.id,
+      subtopicTitle: subtopic.title,
+    })
+  }, [error, guide, guideId, isLoading, subtopic, trackEvent])
 
   if (isLoading) return <TopicSkeleton />
 
@@ -334,7 +373,7 @@ export default function TopicView({ guideId, topicId }: TopicViewProps) {
             </motion.p>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {sortedVideos.map((video) => (
-                <VideoCard key={video.id} video={video} />
+                <VideoCard key={video.id} video={video} onPlay={handleVideoPlay} />
               ))}
             </div>
           </motion.section>

@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import type { OnboardingFormValues } from "@/src/utils/schemas"
+import { useAnalytics } from "@/hooks/use-analytics"
 
 async function submitOnboarding(data: OnboardingFormValues): Promise<void> {
   const res = await fetch("/api/onboarding", {
@@ -18,10 +19,12 @@ async function submitOnboarding(data: OnboardingFormValues): Promise<void> {
 
 export function useOnboarding() {
   const queryClient = useQueryClient()
+  const { trackEvent } = useAnalytics()
 
   return useMutation({
     mutationFn: submitOnboarding,
     onSuccess: async () => {
+      trackEvent("OnboardingCompleted")
       await queryClient.invalidateQueries({ queryKey: ["auth"] })
     },
   })

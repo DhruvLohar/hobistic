@@ -8,6 +8,7 @@ import { useTheme } from "next-themes"
 import Link from "next/link"
 
 import { useAuthContext } from "@/hooks/use-auth"
+import { useAnalytics } from "@/hooks/use-analytics"
 import { OnboardingModal } from "@/components/onboarding/onboarding-modal"
 import GuideForm from "./guide-form"
 import GuidesGrid from "./guides-grid"
@@ -16,6 +17,8 @@ function DashboardContent() {
   const router = useRouter()
   const { user, profile, signOut } = useAuthContext()
   const { resolvedTheme, setTheme } = useTheme()
+  const { trackEvent } = useAnalytics()
+  const trackedProfileViewRef = React.useRef<string | null>(null)
 
   const displayName = React.useMemo(
     () => profile?.display_name ?? user?.email?.split("@")[0] ?? "there",
@@ -31,8 +34,22 @@ function DashboardContent() {
   }, [router, signOut])
 
   const handleThemeToggle = React.useCallback(() => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark")
-  }, [resolvedTheme, setTheme])
+    const nextTheme = resolvedTheme === "dark" ? "light" : "dark"
+    setTheme(nextTheme)
+    trackEvent("ToggledTheme", {
+      from: resolvedTheme ?? "system",
+      to: nextTheme,
+    })
+  }, [resolvedTheme, setTheme, trackEvent])
+
+  React.useEffect(() => {
+    if (!user || trackedProfileViewRef.current === user.id) {
+      return
+    }
+
+    trackedProfileViewRef.current = user.id
+    trackEvent("ProfileViewed", { userId: user.id })
+  }, [trackEvent, user])
 
   if (!user) return null
 

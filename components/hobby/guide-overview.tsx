@@ -17,6 +17,7 @@ import {
 } from "lucide-react"
 
 import { useGuideDetail, type Technique } from "@/hooks/use-guide-detail"
+import { useAnalytics } from "@/hooks/use-analytics"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
@@ -44,25 +45,6 @@ const itemVariants: Variants = {
     y: 0,
     transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
   },
-}
-
-const GENRE_GRADIENTS: Record<string, string> = {
-  music: "from-amber-500/20 via-orange-500/10 to-transparent",
-  art: "from-rose-500/20 via-pink-500/10 to-transparent",
-  sport: "from-emerald-500/20 via-green-500/10 to-transparent",
-  craft: "from-violet-500/20 via-purple-500/10 to-transparent",
-  cooking: "from-orange-500/20 via-amber-500/10 to-transparent",
-  tech: "from-sky-500/20 via-cyan-500/10 to-transparent",
-  language: "from-indigo-500/20 via-blue-500/10 to-transparent",
-  fitness: "from-lime-500/20 via-green-500/10 to-transparent",
-}
-
-function getGenreGradient(genre: string): string {
-  const key = genre.toLowerCase()
-  for (const [k, v] of Object.entries(GENRE_GRADIENTS)) {
-    if (key.includes(k)) return v
-  }
-  return "from-primary/20 via-primary/10 to-transparent"
 }
 
 interface TechniqueCardProps {
@@ -205,6 +187,8 @@ interface GuideOverviewProps {
 export default function GuideOverview({ guideId }: GuideOverviewProps) {
   const router = useRouter()
   const { guide, isLoading, error } = useGuideDetail(guideId)
+  const { trackEvent } = useAnalytics()
+  const trackedGuideRef = React.useRef<string | null>(null)
 
   const sortedTechniques = React.useMemo(
     () =>
@@ -223,6 +207,18 @@ export default function GuideOverview({ guideId }: GuideOverviewProps) {
     router.push("/dashboard")
   }, [router])
 
+  React.useEffect(() => {
+    if (!guide || error || isLoading || trackedGuideRef.current === guide.id) {
+      return
+    }
+
+    trackedGuideRef.current = guide.id
+    trackEvent("HobbyGuideViewed", {
+      guideId: guide.id,
+      hobby: guide.hobby,
+    })
+  }, [error, guide, isLoading, trackEvent])
+
   if (isLoading) return <OverviewSkeleton />
 
   if (error || !guide) {
@@ -240,8 +236,6 @@ export default function GuideOverview({ guideId }: GuideOverviewProps) {
       </div>
     )
   }
-
-  const genreGradient = getGenreGradient(guide.genre)
 
   return (
     <div className="relative min-h-svh overflow-x-hidden">
