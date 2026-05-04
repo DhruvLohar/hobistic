@@ -48,7 +48,7 @@ function DashboardContent() {
       >
         {/* primary blob — top right, distorted */}
         <div
-          className="absolute -top-40 -right-40 h-[640px] w-[640px] rounded-full blur-[100px]"
+          className="absolute -top-40 -right-40 h-[640px] w-[640px] rounded-full blur-[100px] opacity-30 sm:opacity-60 lg:opacity-80"
           style={{
             background: "radial-gradient(ellipse at 60% 40%, oklch(0.514 0.222 16.935 / 0.28) 0%, oklch(0.586 0.253 17.585 / 0.14) 50%, transparent 75%)",
             transform: "rotate(-20deg) scaleX(0.85)",
@@ -56,7 +56,7 @@ function DashboardContent() {
         />
         {/* warm amber complement — mid left */}
         <div
-          className="absolute top-[30%] -left-52 h-[520px] w-[520px] rounded-full blur-[90px]"
+          className="absolute top-[30%] -left-52 h-[520px] w-[520px] rounded-full blur-[90px] opacity-25 sm:opacity-55 lg:opacity-80"
           style={{
             background: "radial-gradient(ellipse at 40% 60%, oklch(0.78 0.18 55 / 0.18) 0%, oklch(0.70 0.15 40 / 0.10) 55%, transparent 78%)",
             transform: "rotate(15deg) scaleY(0.8)",
@@ -64,7 +64,7 @@ function DashboardContent() {
         />
         {/* secondary primary echo — bottom center */}
         <div
-          className="absolute -bottom-48 left-1/3 h-[500px] w-[500px] rounded-full blur-[110px]"
+          className="absolute -bottom-48 left-1/3 h-[500px] w-[500px] rounded-full blur-[110px] opacity-20 sm:opacity-50 lg:opacity-80"
           style={{
             background: "radial-gradient(ellipse at 50% 50%, oklch(0.514 0.222 16.935 / 0.16) 0%, transparent 70%)",
             transform: "scaleX(1.2)",
