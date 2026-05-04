@@ -46,10 +46,10 @@ export default function Page() {
 
       {/* mobile CTA — bottom overlay */}
       <div className="absolute inset-x-0 bottom-0 flex flex-col items-center px-6 pb-10 pt-24 text-center md:hidden">
-        <h2 className="font-product text-4xl font-semibold sm:text-5xl">
+        <h2 className="font-product text-4xl font-semibold sm:text-5xl text-background">
           Stick to your <span className="text-primary">Hobbies</span>
         </h2>
-        <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/80 sm:text-base">
+        <p className="mt-3 max-w-xs text-sm leading-relaxed sm:text-base text-background/80">
           Turn free time into fun skill time — pick a hobby, level up, and
           enjoy every step.
         </p>
