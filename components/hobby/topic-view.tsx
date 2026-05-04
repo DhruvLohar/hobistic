@@ -3,9 +3,13 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { motion, useScroll, useSpring, type Variants } from "motion/react"
-import { ArrowLeft, Play, ExternalLink } from "lucide-react"
+import { ArrowLeft, Play, ExternalLink, Lock, CheckCircle2 } from "lucide-react"
 
-import { useGuideDetail, type Subtopic } from "@/hooks/use-guide-detail"
+import {
+  useCompleteSubtopic,
+  useGuideDetail,
+  type Subtopic,
+} from "@/hooks/use-guide-detail"
 import { Skeleton } from "@/components/ui/skeleton"
 import MarkdownContent from "./markdown-content"
 
@@ -131,6 +135,8 @@ interface TopicViewProps {
 export default function TopicView({ guideId, topicId }: TopicViewProps) {
   const router = useRouter()
   const { guide, isLoading, error } = useGuideDetail(guideId)
+  const { completeSubtopic, isCompleting, error: completionError } =
+    useCompleteSubtopic()
   const contentRef = React.useRef<HTMLDivElement>(null)
 
   const { scrollYProgress } = useScroll()
@@ -185,6 +191,12 @@ export default function TopicView({ guideId, topicId }: TopicViewProps) {
     (a, b) => a.sort_order - b.sort_order
   )
   const sortedVideos = [...subtopic.subtopic_videos]
+  const isLocked = !subtopic.is_unlocked
+  const isCompleted = subtopic.is_completed
+
+  const handleComplete = async () => {
+    await completeSubtopic({ guideId, subtopicId: subtopic.id })
+  }
 
   return (
     <div className="relative min-h-svh overflow-x-hidden">
@@ -266,10 +278,48 @@ export default function TopicView({ guideId, topicId }: TopicViewProps) {
           <p className="text-base leading-relaxed text-muted-foreground">
             {subtopic.text}
           </p>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {isCompleted ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Completed
+              </span>
+            ) : isLocked ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
+                <Lock className="h-3.5 w-3.5" />
+                Locked
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={handleComplete}
+                disabled={isCompleting}
+                className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isCompleting ? "Saving..." : "Mark as completed"}
+              </button>
+            )}
+            {completionError && (
+              <span className="text-xs text-destructive">
+                {completionError.message}
+              </span>
+            )}
+          </div>
         </motion.div>
 
+        {isLocked && (
+          <motion.section
+            initial={{ opacity: 0, y: SLIDE_DISTANCE_PX }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground"
+          >
+            This subtopic unlocks after you complete previous subtopics in order.
+          </motion.section>
+        )}
+
         {/* videos section */}
-        {sortedVideos.length > 0 && (
+        {!isLocked && sortedVideos.length > 0 && (
           <motion.section
             variants={containerVariants}
             initial="hidden"
@@ -291,25 +341,27 @@ export default function TopicView({ guideId, topicId }: TopicViewProps) {
         )}
 
         {/* markdown content */}
-        <motion.section
-          initial={{ opacity: 0, y: SLIDE_DISTANCE_PX }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            duration: 0.6,
-            delay: sortedVideos.length > 0 ? 0.3 : 0.15,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-        >
-          <p className="mb-6 font-heading text-xs font-semibold uppercase tracking-widest text-primary">
-            Deep Dive
-          </p>
-          <article className="prose-custom">
-            <MarkdownContent
-              content={subtopic.content}
-              images={sortedImages}
-            />
-          </article>
-        </motion.section>
+        {!isLocked && (
+          <motion.section
+            initial={{ opacity: 0, y: SLIDE_DISTANCE_PX }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.6,
+              delay: sortedVideos.length > 0 ? 0.3 : 0.15,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+          >
+            <p className="mb-6 font-heading text-xs font-semibold uppercase tracking-widest text-primary">
+              Deep Dive
+            </p>
+            <article className="prose-custom">
+              <MarkdownContent
+                content={subtopic.content}
+                images={sortedImages}
+              />
+            </article>
+          </motion.section>
+        )}
       </main>
     </div>
   )

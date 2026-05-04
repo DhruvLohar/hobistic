@@ -12,10 +12,18 @@ import {
   Sparkles,
   BookOpen,
   Play,
+  Lock,
+  CheckCircle2,
 } from "lucide-react"
 
 import { useGuideDetail, type Technique } from "@/hooks/use-guide-detail"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 const STAGGER_DELAY_S = 0.08
 const SLIDE_DISTANCE_PX = 24
@@ -85,44 +93,87 @@ const TechniqueCard = React.memo(function TechniqueCard({
       </div>
 
       <div className="space-y-2 pl-0 sm:pl-11">
-        {sortedSubtopics.map((subtopic, i) => (
-          <Link
-            key={subtopic.id}
-            href={`/hobby/${guideId}/topic/${subtopic.id}`}
-          >
-            <motion.div
-              whileHover={{
-                y: CARD_HOVER_Y,
-                transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] },
-              }}
-              className="group/card flex items-center justify-between gap-4 rounded-xl glass-subtle p-4 transition-shadow duration-300 hover:shadow-md"
-            >
-              <div className="flex items-center gap-3.5 overflow-hidden">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted font-mono text-xs font-medium text-muted-foreground">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <div className="min-w-0">
-                  <h3 className="truncate font-heading text-sm font-semibold text-foreground">
-                    {subtopic.title}
-                  </h3>
-                  <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
-                    {subtopic.text}
-                  </p>
-                </div>
-              </div>
+        <TooltipProvider delayDuration={150}>
+          {sortedSubtopics.map((subtopic, i) => (
+            (() => {
+            const isLocked = !subtopic.is_unlocked
+            const isCompleted = subtopic.is_completed
 
-              <div className="flex shrink-0 items-center gap-2">
-                {subtopic.subtopic_videos.length > 0 && (
-                  <span className="flex items-center gap-1 rounded-full bg-primary/8 px-2 py-0.5 text-[10px] font-medium text-primary">
-                    <Play className="h-2.5 w-2.5" />
-                    {subtopic.subtopic_videos.length}
+            const card = (
+              <motion.div
+                whileHover={
+                  isLocked
+                    ? undefined
+                    : {
+                        y: CARD_HOVER_Y,
+                        transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] },
+                      }
+                }
+                className={`group/card flex items-center justify-between gap-4 rounded-xl glass-subtle p-4 transition-shadow duration-300 ${isLocked ? "cursor-not-allowed opacity-65" : "hover:shadow-md"}`}
+              >
+                <div className="flex items-center gap-3.5 overflow-hidden">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted font-mono text-xs font-medium text-muted-foreground">
+                    {String(i + 1).padStart(2, "0")}
                   </span>
-                )}
-                <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover/card:translate-x-1 group-hover/card:text-primary" />
-              </div>
-            </motion.div>
-          </Link>
-        ))}
+                  <div className="min-w-0">
+                    <h3 className="truncate font-heading text-sm font-semibold text-foreground">
+                      {subtopic.title}
+                    </h3>
+                    <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+                      {subtopic.text}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex shrink-0 items-center gap-2">
+                  {isCompleted ? (
+                    <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                      <CheckCircle2 className="h-2.5 w-2.5" />
+                      Done
+                    </span>
+                  ) : isLocked ? (
+                    <span className="flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                      <Lock className="h-2.5 w-2.5" />
+                      Locked
+                    </span>
+                  ) : null}
+
+                  {subtopic.subtopic_videos.length > 0 && (
+                    <span className="flex items-center gap-1 rounded-full bg-primary/8 px-2 py-0.5 text-[10px] font-medium text-primary">
+                      <Play className="h-2.5 w-2.5" />
+                      {subtopic.subtopic_videos.length}
+                    </span>
+                  )}
+                  {!isLocked && (
+                    <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover/card:translate-x-1 group-hover/card:text-primary" />
+                  )}
+                </div>
+              </motion.div>
+            )
+
+            if (isLocked) {
+              return (
+                <Tooltip key={subtopic.id}>
+                  <TooltipTrigger asChild>
+                    <div aria-disabled className="block">
+                      {card}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" sideOffset={8}>
+                    Complete the lesson above to unlock this.
+                  </TooltipContent>
+                </Tooltip>
+              )
+            }
+
+            return (
+              <Link key={subtopic.id} href={`/hobby/${guideId}/topic/${subtopic.id}`}>
+                {card}
+              </Link>
+            )
+            })()
+          ))}
+        </TooltipProvider>
       </div>
     </motion.div>
   )

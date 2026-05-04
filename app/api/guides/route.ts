@@ -40,10 +40,12 @@ function getErrorMessage(error: unknown): string {
 async function runGuideEngineJob({
   supabase,
   guideId,
+  userId,
   input,
 }: {
   supabase: Awaited<ReturnType<typeof createClient>>
   guideId: string
+  userId: string
   input: EngineInput
 }) {
   try {
@@ -57,6 +59,7 @@ async function runGuideEngineJob({
     await persistGuideOutput({
       supabase,
       guideId,
+      userId,
       result: validatedResult.data,
     })
   } catch (error) {
@@ -76,10 +79,12 @@ async function runGuideEngineJob({
 async function persistGuideOutput({
   supabase,
   guideId,
+  userId,
   result,
 }: {
   supabase: Awaited<ReturnType<typeof createClient>>
   guideId: string
+  userId: string
   result: EnrichedGuide
 }) {
   const { error: guideUpdateError } = await supabase
@@ -113,6 +118,7 @@ async function persistGuideOutput({
   const sortedTechniques = (insertedTechniques ?? []).sort(
     (a, b) => a.sort_order - b.sort_order
   )
+  const orderedSubtopicIds: string[] = []
 
   for (const [techniqueIndex, technique] of result.techniques.entries()) {
     const techniqueRow = sortedTechniques[techniqueIndex]
@@ -153,6 +159,7 @@ async function persistGuideOutput({
           `Missing inserted subtopic at technique=${techniqueIndex}, subtopic=${subtopicIndex}`
         )
       }
+      orderedSubtopicIds.push(subtopicRow.id)
 
       subtopic.images.forEach((imageUrl, imageIndex) => {
         imageRows.push({
@@ -184,6 +191,27 @@ async function persistGuideOutput({
       if (videosError) {
         throw new Error(videosError.message)
       }
+    }
+  }
+
+  if (orderedSubtopicIds.length > 0) {
+    const nowIso = new Date().toISOString()
+    const progressRows = orderedSubtopicIds.map((subtopicId, index) => ({
+      user_id: userId,
+      guide_id: guideId,
+      subtopic_id: subtopicId,
+      is_unlocked: index === 0,
+      unlocked_at: index === 0 ? nowIso : null,
+      is_completed: false,
+      completed_at: null,
+    }))
+
+    const { error: progressError } = await supabase
+      .from("guide_subtopic_progress")
+      .insert(progressRows)
+
+    if (progressError) {
+      throw new Error(progressError.message)
     }
   }
 }
@@ -321,6 +349,7 @@ export async function POST(req: NextRequest) {
     await runGuideEngineJob({
       supabase,
       guideId: createdGuide.id,
+      userId: user.id,
       input,
     })
   } catch (engineErr) {

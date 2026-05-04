@@ -1,6 +1,7 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
+import * as React from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 export interface SubtopicImage {
   id: string
@@ -23,6 +24,10 @@ export interface Subtopic {
   yt_keyword: string
   content: string
   sort_order: number
+  is_unlocked: boolean
+  is_completed: boolean
+  unlocked_at: string | null
+  completed_at: string | null
   subtopic_images: SubtopicImage[]
   subtopic_videos: SubtopicVideo[]
 }
@@ -67,5 +72,65 @@ export function useGuideDetail(id: string) {
     guide: query.data ?? null,
     isLoading: query.isLoading,
     error: query.error,
+  }
+}
+
+interface CompleteSubtopicInput {
+  guideId: string
+  subtopicId: string
+}
+
+interface ProgressRow {
+  subtopic_id: string
+  is_unlocked: boolean
+  is_completed: boolean
+  unlocked_at: string | null
+  completed_at: string | null
+}
+
+interface CompleteSubtopicResponse {
+  progress: ProgressRow[]
+  currentSubtopicId: string
+  nextUnlockedSubtopicId: string | null
+}
+
+export function useCompleteSubtopic() {
+  const queryClient = useQueryClient()
+
+  const mutation = useMutation<
+    CompleteSubtopicResponse,
+    Error,
+    CompleteSubtopicInput
+  >({
+    mutationFn: async ({ guideId, subtopicId }) => {
+      const res = await fetch(`/api/guides/${guideId}/progress`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subtopicId }),
+      })
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error ?? "Failed to complete subtopic")
+      }
+
+      return (await res.json()) as CompleteSubtopicResponse
+    },
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({
+        queryKey: [GUIDE_DETAIL_QUERY_KEY, variables.guideId],
+      })
+    },
+  })
+
+  const completeSubtopic = React.useCallback(
+    async (input: CompleteSubtopicInput) => mutation.mutateAsync(input),
+    [mutation]
+  )
+
+  return {
+    completeSubtopic,
+    isCompleting: mutation.isPending,
+    error: mutation.error,
   }
 }
