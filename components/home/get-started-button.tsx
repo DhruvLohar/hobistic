@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { LoginDialog } from "@/components/home/login-dialog"
 import { useAuth } from "@/hooks/use-auth"
@@ -33,8 +33,8 @@ export function GetStartedButton() {
         disabled
         className="mt-8 w-full self-start rounded-full py-8 text-xl font-semibold sm:mt-12 sm:w-64 opacity-70"
       >
-        Get Started
-        <ArrowRight data-icon="inline-end" className="ml-2 -rotate-45" />
+        <Loader2 className="mr-2 animate-spin" />
+        Just a Sec
       </Button>
     )
   }
