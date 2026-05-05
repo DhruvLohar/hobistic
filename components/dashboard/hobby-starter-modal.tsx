@@ -38,9 +38,14 @@ interface HobbyStarterModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   isProcessing: boolean
+  onDismissProcessing?: () => void
 }
 
-function ProcessingFace() {
+interface ProcessingFaceProps {
+  onDismiss: () => void
+}
+
+function ProcessingFace({ onDismiss }: ProcessingFaceProps) {
   const [factIndex, setFactIndex] = React.useState(0)
 
   React.useEffect(() => {
@@ -106,6 +111,14 @@ function ProcessingFace() {
           />
         ))}
       </div>
+
+      <button
+        type="button"
+        onClick={onDismiss}
+        className="text-xs text-muted-foreground/60 underline-offset-2 hover:text-muted-foreground hover:underline transition-colors"
+      >
+        Continue in background
+      </button>
     </div>
   )
 }
@@ -154,6 +167,7 @@ export function HobbyStarterModal({
   open,
   onOpenChange,
   isProcessing,
+  onDismissProcessing,
 }: HobbyStarterModalProps) {
   const [hasFlipped, setHasFlipped] = React.useState(false)
 
@@ -179,6 +193,11 @@ export function HobbyStarterModal({
     onOpenChange(false)
   }, [onOpenChange])
 
+  const handleDismissProcessing = React.useCallback(() => {
+    onDismissProcessing?.()
+    onOpenChange(false)
+  }, [onDismissProcessing, onOpenChange])
+
   return (
     <>
       {/* confetti layer — plays when card flips to completed */}
@@ -202,17 +221,11 @@ export function HobbyStarterModal({
         )}
       </AnimatePresence>
 
-      <Dialog open={open} onOpenChange={isProcessing ? () => {} : onOpenChange}>
+      <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
           showCloseButton={false}
           className="max-w-md gap-0 overflow-visible border-none bg-transparent p-0 shadow-none"
           style={{ perspective: "1200px" }}
-          onInteractOutside={(e) => {
-            if (isProcessing) e.preventDefault()
-          }}
-          onEscapeKeyDown={(e) => {
-            if (isProcessing) e.preventDefault()
-          }}
         >
           <motion.div
             animate={{ rotateY: hasFlipped ? 180 : 0 }}
@@ -230,7 +243,7 @@ export function HobbyStarterModal({
               className="rounded-2xl border border-border bg-card shadow-lg"
               style={{ backfaceVisibility: "hidden" }}
             >
-              <ProcessingFace />
+              <ProcessingFace onDismiss={handleDismissProcessing} />
             </div>
 
             {/* back face — completed */}

@@ -53,7 +53,12 @@ export function useCreateGuide() {
   const queryClient = useQueryClient()
   const { trackEvent } = useAnalytics()
 
-  const createMutation = useMutation<Guide, Error, GuideFormValues>({
+  const createMutation = useMutation<
+    Guide,
+    Error,
+    GuideFormValues,
+    { previousGuides: Guide[] | undefined; tempId: string }
+  >({
     mutationFn: async (values) => {
       if (MOCK_CREATE_GUIDE) {
         await sleep(4000)
@@ -84,19 +89,46 @@ export function useCreateGuide() {
       const body = await res.json()
       return body.guide as Guide
     },
-    onSuccess: async (newGuide) => {
+    onMutate: async (values) => {
+      await queryClient.cancelQueries({ queryKey: GUIDES_QUERY_KEY })
+      const previousGuides = queryClient.getQueryData<Guide[]>(GUIDES_QUERY_KEY)
+      const tempId = `temp-${crypto.randomUUID()}`
+      const optimisticGuide: Guide = {
+        id: tempId,
+        hobby: values.hobby,
+        genre: "other",
+        status: "processing",
+        time_per_day: values.timePerDay,
+        reason_of_learning: values.reasonOfLearning,
+        is_first_time: values.isFirstTime,
+        created_at: new Date().toISOString(),
+        subtopic_count: 0,
+        cover_image: null,
+      }
+      queryClient.setQueryData<Guide[]>(GUIDES_QUERY_KEY, (current) => [
+        optimisticGuide,
+        ...(current ?? []),
+      ])
+      return { previousGuides, tempId }
+    },
+    onSuccess: async (newGuide, _, context) => {
       trackEvent("HobbyGuideCreated", {
         guideId: newGuide.id,
         hobby: newGuide.hobby,
       })
 
-      queryClient.setQueryData<Guide[]>(GUIDES_QUERY_KEY, (currentGuides) => {
-        const existing = currentGuides ?? []
-        return [newGuide, ...existing.filter((guide) => guide.id !== newGuide.id)]
+      queryClient.setQueryData<Guide[]>(GUIDES_QUERY_KEY, (current) => {
+        const filtered = (current ?? []).filter((g) => g.id !== context?.tempId)
+        return [newGuide, ...filtered.filter((g) => g.id !== newGuide.id)]
       })
 
       if (!MOCK_CREATE_GUIDE) {
         await queryClient.invalidateQueries({ queryKey: GUIDES_QUERY_KEY })
+      }
+    },
+    onError: (_err, _values, context) => {
+      if (context?.previousGuides !== undefined) {
+        queryClient.setQueryData<Guide[]>(GUIDES_QUERY_KEY, context.previousGuides)
       }
     },
   })

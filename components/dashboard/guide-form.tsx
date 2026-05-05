@@ -154,21 +154,21 @@ export default function GuideForm({ onSuccess }: GuideFormProps) {
   }, [unit, timePerDay, setValue])
 
   const onSubmit = React.useCallback(
-    async (values: GuideFormValues) => {
+    (values: GuideFormValues) => {
       const hoursValue =
         unit === "minutes"
           ? String(Number(values.timePerDay) / 60)
           : values.timePerDay
       setModalProcessing(true)
       setIsStarterModalOpen(true)
-      try {
-        await createGuide({ ...values, timePerDay: hoursValue })
-        setModalProcessing(false)
-        onSuccess?.()
-      } catch {
-        setModalProcessing(false)
-        setIsStarterModalOpen(false)
-      }
+      onSuccess?.()
+      // fire-and-forget — optimistic guide already appears in the list
+      createGuide({ ...values, timePerDay: hoursValue })
+        .then(() => setModalProcessing(false))
+        .catch(() => {
+          setModalProcessing(false)
+          setIsStarterModalOpen(false)
+        })
     },
     [createGuide, onSuccess, unit]
   )
