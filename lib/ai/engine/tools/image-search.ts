@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const SERPER_IMAGES_URL = "https://google.serper.dev/images";
+const VALIDATE_TIMEOUT_MS = 2000;
 
 interface SerperImageResult {
   title: string;
@@ -12,14 +13,12 @@ interface SerperImagesResponse {
   images: SerperImageResult[];
 }
 
-export async function imageExists(url: string): Promise<boolean> {
+async function isImageReachable(url: string): Promise<boolean> {
   try {
-    let res = await fetch(url, { method: "HEAD" });
-
-    if (!res.ok) {
-      res = await fetch(url);
-    }
-
+    const res = await fetch(url, {
+      method: "HEAD",
+      signal: AbortSignal.timeout(VALIDATE_TIMEOUT_MS),
+    });
     const contentType = res.headers.get("content-type");
     return res.ok && !!contentType?.startsWith("image/");
   } catch {
@@ -35,12 +34,13 @@ export async function searchImages(
   try {
     const { data } = await axios.post<SerperImagesResponse>(
       SERPER_IMAGES_URL,
-      { q: keyword, num: 8 },
+      { q: keyword, num: 6 },
       {
         headers: {
           "X-API-KEY": process.env.SERPER_API_KEY!,
           "Content-Type": "application/json",
         },
+        timeout: 5000,
       },
     );
 
@@ -49,18 +49,14 @@ export async function searchImages(
 
     const shuffled = [...images].sort(() => Math.random() - 0.5);
     const checks = await Promise.all(
-      shuffled.map(async (image) => ({
-        url: image.imageUrl,
-        exists: await imageExists(image.imageUrl),
+      shuffled.map(async (img) => ({
+        url: img.imageUrl,
+        valid: await isImageReachable(img.imageUrl),
       })),
     );
 
-    const validUrls = checks.filter((item) => item.exists).map((item) => item.url);
-    if (validUrls.length === 0) return [];
-
-    // shuffle and return 2-3
-    const count = Math.min(3, Math.max(2, validUrls.length));
-    return validUrls.slice(0, count);
+    const valid = checks.filter((c) => c.valid).map((c) => c.url);
+    return valid.slice(0, 3);
   } catch {
     return [];
   }

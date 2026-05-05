@@ -2,7 +2,7 @@ import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 
 const genai = new GoogleGenAI({
   apiKey: process.env.GOOGLE_API_KEY!,
-  httpOptions: { timeout: 120_000 }, // 2 minute timeout (default is 1 min)
+  httpOptions: { timeout: 120_000 },
 });
 
 export const groundingEnabledTools = [
@@ -29,7 +29,7 @@ export async function useGenAIGrounding<T>(
   systemPrompt: string,
   userPrompt: string,
   model: GenAIModel = "GEMINI_FLASH_PREVIEW",
-  schema?: any // TODO: fix to a type later
+  schema?: any,
 ): Promise<string | T> {
   const config = {
     thinkingConfig: {

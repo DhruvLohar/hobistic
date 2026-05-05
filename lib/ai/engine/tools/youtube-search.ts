@@ -27,6 +27,7 @@ export async function searchYouTube(
           "X-API-KEY": process.env.SERPER_API_KEY!,
           "Content-Type": "application/json",
         },
+        timeout: 5000,
       },
     );
 

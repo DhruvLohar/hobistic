@@ -22,6 +22,7 @@ export async function searchWeb(query: string): Promise<string> {
           "X-API-KEY": process.env.SERPER_API_KEY!,
           "Content-Type": "application/json",
         },
+        timeout: 5000,
       },
     );
 

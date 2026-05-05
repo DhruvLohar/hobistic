@@ -7,7 +7,7 @@ import {
   curationJsonSchema,
 } from "../prompts/content-curation";
 
-const BATCH_SIZE = 4;
+const BATCH_SIZE = 8;
 const MIN_CONTENT_LENGTH = 200;
 
 type CurationBatchItem = {
