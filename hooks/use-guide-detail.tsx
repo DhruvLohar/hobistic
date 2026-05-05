@@ -134,3 +134,35 @@ export function useCompleteSubtopic() {
     error: mutation.error,
   }
 }
+
+export function useUnlockAllLessons() {
+  const queryClient = useQueryClient()
+
+  const mutation = useMutation<void, Error, string>({
+    mutationFn: async (guideId: string) => {
+      const res = await fetch(`/api/guides/${guideId}/unlock-all`, {
+        method: "POST",
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error ?? "Failed to unlock lessons")
+      }
+    },
+    onSuccess: async (_data, guideId) => {
+      await queryClient.invalidateQueries({
+        queryKey: [GUIDE_DETAIL_QUERY_KEY, guideId],
+      })
+    },
+  })
+
+  const unlockAll = React.useCallback(
+    (guideId: string) => mutation.mutateAsync(guideId),
+    [mutation]
+  )
+
+  return {
+    unlockAll,
+    isUnlocking: mutation.isPending,
+    error: mutation.error,
+  }
+}

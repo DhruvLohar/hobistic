@@ -7,13 +7,18 @@ A hobby learning platform designed to help users discover, pursue, and master ne
 ---
 
 ## Walkthrough
-> TBA
+[Checkout this loom video recording](https://www.loom.com/share/f8e4bb1e1bee4a9abe91492294b1384a)
 
 ---
 
 ## Built with AI Assistance
 
 The architecture and core idea are 100% my own. AI agents (Claude, Copilot) + CLAUDE.md conventions enabled 5x faster development—writing only the essential logic while AI handled scaffolding, schema design, and component structure. Leveraging smart prompting + architectural docs keeps code quality high while I ship. 😉
+
+### LLM Models and frameworks
+- For content using Gemini 3.1 Flash
+- Using Serper for scraping
+- Using Lang Graph for the agentic workflow
 
 ---
 

@@ -14,9 +14,11 @@ import {
   Play,
   Lock,
   CheckCircle2,
+  Unlock,
+  Loader2,
 } from "lucide-react"
 
-import { useGuideDetail, type Technique } from "@/hooks/use-guide-detail"
+import { useGuideDetail, useUnlockAllLessons, type Technique } from "@/hooks/use-guide-detail"
 import { useAnalytics } from "@/hooks/use-analytics"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -187,6 +189,7 @@ interface GuideOverviewProps {
 export default function GuideOverview({ guideId }: GuideOverviewProps) {
   const router = useRouter()
   const { guide, isLoading, error } = useGuideDetail(guideId)
+  const { unlockAll, isUnlocking } = useUnlockAllLessons()
   const { trackEvent } = useAnalytics()
   const trackedGuideRef = React.useRef<string | null>(null)
 
@@ -202,6 +205,16 @@ export default function GuideOverview({ guideId }: GuideOverviewProps) {
     () => sortedTechniques.reduce((acc, t) => acc + t.subtopics.length, 0),
     [sortedTechniques]
   )
+
+  const hasLockedLessons = React.useMemo(
+    () =>
+      sortedTechniques.some((t) => t.subtopics.some((s) => !s.is_unlocked)),
+    [sortedTechniques]
+  )
+
+  const handleUnlockAll = React.useCallback(async () => {
+    await unlockAll(guideId)
+  }, [unlockAll, guideId])
 
   const handleBack = React.useCallback(() => {
     router.push("/dashboard")
@@ -285,6 +298,24 @@ export default function GuideOverview({ guideId }: GuideOverviewProps) {
           >
             HobiStic
           </motion.span>
+
+          {hasLockedLessons && (
+            <motion.button
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4, delay: 0.15 }}
+              onClick={handleUnlockAll}
+              disabled={isUnlocking}
+              className="ml-auto flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/8 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/15 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isUnlocking ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Unlock className="h-3.5 w-3.5" />
+              )}
+              {isUnlocking ? "Unlocking…" : "Unlock all lessons"}
+            </motion.button>
+          )}
         </div>
       </header>
 

@@ -176,6 +176,13 @@ export default function TopicView({ guideId, topicId }: TopicViewProps) {
     return ""
   }, [guide, topicId])
 
+  const allLessonsUnlocked = React.useMemo(
+    () =>
+      !!guide &&
+      guide.techniques.every((t) => t.subtopics.every((s) => s.is_unlocked)),
+    [guide]
+  )
+
   const nextSubtopicIdFromGuide = React.useMemo(() => {
     if (!guide) return null
 
@@ -373,7 +380,7 @@ export default function TopicView({ guideId, topicId }: TopicViewProps) {
                 <Lock className="h-3.5 w-3.5" />
                 Locked
               </span>
-            ) : (
+            ) : !allLessonsUnlocked ? (
               <button
                 type="button"
                 onClick={handleComplete}
@@ -382,7 +389,7 @@ export default function TopicView({ guideId, topicId }: TopicViewProps) {
               >
                 {isCompleting ? "Saving..." : "Mark as completed"}
               </button>
-            )}
+            ) : null}
             {completionError && (
               <span className="text-xs text-destructive">
                 {completionError.message}
