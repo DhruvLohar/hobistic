@@ -41,14 +41,7 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = await createClient()
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError) {
-      return NextResponse.json({ error: authError.message }, { status: 401 })
-    }
+    const { data: { user } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }))
 
     const { error: insertError } = await supabase.from("analytics_events").insert({
       event: parsed.data.event,
