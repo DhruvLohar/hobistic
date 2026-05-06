@@ -46,6 +46,7 @@ export function useAuth(): UseAuthValue {
   const authQuery = useQuery<AuthQueryResult, Error>({
     queryKey: AUTH_QUERY_KEY,
     enabled: !!supabase,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       if (!supabase) {
         throw new Error("Supabase client is not available")
