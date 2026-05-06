@@ -275,7 +275,7 @@ export function LoginDialog({ open: initialOpen, children }: LoginDialogProps) {
       >
         <DrawerTrigger asChild>{children}</DrawerTrigger>
         {/* scrollable sheet that rises above the keyboard */}
-        <DrawerContent className="bg-secondary before:bg-secondary max-h-[92dvh] overflow-y-auto">
+        <DrawerContent className="bg-secondary before:bg-secondary max-h-[92svh] overflow-y-auto">
           <LoginContent
             {...contentProps}
             TitleComponent={DrawerTitle}
